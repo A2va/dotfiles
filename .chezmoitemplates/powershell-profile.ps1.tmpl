@@ -1,0 +1,15 @@
+# Minimal PowerShell Profile
+# Heavy configuration is loaded from internal.ps1
+
+# Source the internal configuration if it exists
+$internalPath = Join-Path $PSScriptRoot "internal.ps1"
+if (Test-Path -Path $internalPath) {
+    . $internalPath
+}
+
+# Add your minimal aliases and functions here
+# Example aliases:
+# Set-Alias -Name ll -Value Get-ChildItem
+# Set-Alias -Name grep -Value Select-String
+
+# Add any user-specific customizations below this line

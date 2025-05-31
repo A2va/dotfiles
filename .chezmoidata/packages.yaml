@@ -1,0 +1,12 @@
+packages:
+  winget:
+    all:
+      - JernejSimoncic.Wget
+      - Microsoft.WindowsTerminal
+      - Microsoft.VisualStudioCode
+      - eza-community.eza
+      - ajeetdsouza.zoxide
+      - Git.Git
+      - Nushell.Nushell
+      - rsteube.Carapace
+      - Starship.Starship

@@ -1,0 +1,27 @@
+Set-StrictMode -Version 3.0
+$ErrorActionPreference = "Stop"
+ # ddda
+{{ $winget_packages := concat
+  (dig "all" list .packages.winget) -}}
+  # (dig .profile list .packages.winget) -}}
+
+#region Winget packages
+{{ $winget_list := (output "cmd" "/C" "winget export -s winget -o %TEMP%\\winget_list && type %TEMP%\\winget_list") -}}
+{{ range $winget_packages -}}
+{{   if not (contains . $winget_list) -}}
+        Write-Host Installing winget package '{{ .}}'
+        winget install `
+          --scope user --exact --source winget --id {{ . }} `
+          --accept-source-agreements `
+          --accept-package-agreements `
+          --silent `
+          --disable-interactivity
+{{   end -}}
+{{ end }}
+#endregion
+
+# ddddd
+
+# xmake can't be installed like the other packages, because if it installed like the others, xrepo
+# isn't available.
+winget install --id Xmake-io.Xmake --interactive
