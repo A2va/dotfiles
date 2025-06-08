@@ -1,8 +1,10 @@
 {{ if ne .chezmoi.os "windows" }}
-.chezmoiscripts/windows
+.chezmoiscripts/windows/**
 Documents
 {{ end }}
 
 {{ if ne .chezmoi.os "linux" }}
-.chezmoiscripts/linux
+.chezmoiscripts/linux/**
+dot_bashprofile
+dot_bashrc
 {{ end }}

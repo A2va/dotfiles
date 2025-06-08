@@ -6,7 +6,9 @@ packages:
       - Microsoft.VisualStudioCode
       - eza-community.eza
       - ajeetdsouza.zoxide
-      - Git.Git
       - Nushell.Nushell
       - rsteube.Carapace
       - Starship.Starship
+      - astral-sh.uv
+      - sharkdp.bat
+      - charmbracelet.vhs

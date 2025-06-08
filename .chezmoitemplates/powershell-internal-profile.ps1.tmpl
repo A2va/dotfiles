@@ -1,16 +1,8 @@
+# Internal powershell profile for handling completion
+
 {{ $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links"}}
 
 $env:STARSHIP_CONFIG = "$HOME\AppData\Local\starship\starship.toml"
-
-# Add Winget packages/apps to the PATH env
-if ($env:Path -notlike "*\Microsoft\WinGet\Links*") {
-    $env:Path += ";$env:LOCALAPPDATA\Microsoft\WinGet\Links"
-}
-
-# Windows execution aliases (should be on path already but lets include it nonetheless)
-if ($env:Path -notlike "*\Microsoft\WindowsApps*") {
-    $env:Path += ";$env:LOCALAPPDATA\Microsoft\WindowsApps"
-}
 
 # chezmoi managed externals
 if ($env:Path -notlike "*\.local\bin*") {
@@ -22,8 +14,19 @@ if ($env:Path -notlike "*\.local\bin*") {
 &"starship" init powershell --print-full-init | Out-String | Invoke-Expression
 {{- end }}
 
+# chezmoi completion
 {{ completion "powershell" }}
 
+# carapace completion
+{{ if or (stat (joinPath $wingetLinksPath "carapace.exe")) (lookPath "carapace") }}
+$env:CARAPACE_BRIDGES = 'inshellisense' # optional
+Set-PSReadLineOption -Colors @{ "Selection" = "`e[7m" }
+Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
+carapace _carapace | Out-String | Invoke-Expression
+{{- end }}
+
+
+# zoxide completion
 {{ if or (stat (joinPath $wingetLinksPath "zoxide.exe")) (lookPath "zoxide") }}
 Invoke-Expression (& { (zoxide init powershell | Out-String) })
 filter __zoxide_escapeStringWithSpecialChars {
@@ -75,7 +78,7 @@ Register-ArgumentCompleter -Native -CommandName "z" -ScriptBlock {
 {{ end }}
 
 
-
+# xmake completion
 {{ if or (stat `C:\Program Files\xmake\xmake.exe`) (lookPath "xmake") }}
 # PowerShell parameter completion for xmake
 Register-ArgumentCompleter -Native -CommandName xmake -ScriptBlock {

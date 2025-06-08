@@ -12,7 +12,6 @@
         "dot_zprofile*": "shellscript",
         "dot_zshrc*": "shellscript",
         "*.json5": "jsonc",
-        "**/private_dot_local/bin/*.tmpl": "shellscript"
     },
     "go-template.patterns": [
         "**/*.tmpl"

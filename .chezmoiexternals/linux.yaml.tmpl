@@ -1,0 +1,83 @@
+{{- $unameMachine := "" -}}
+{{- if eq .chezmoi.os "linux" }}
+  {{- $unameMachine = output "uname" "-m" | trim -}}
+{{- end }}
+
+# {{ if eq .chezmoi.os "linux" }}
+".local/bin/fzf":
+  type: archive-file
+  url: https://github.com/junegunn/fzf/releases/download/{{ .versions.fzf }}/fzf-{{ .versions.fzf | trimPrefix "v" }}-linux_{{
+      eq .chezmoi.arch "arm" | ternary ($unameMachine | trunc 5) .chezmoi.arch
+    }}.tar.gz
+  path: fzf
+
+".local/bin/starship":
+  type: archive-file
+  url: https://github.com/starship/starship/releases/download/{{ .versions.starship }}/starship-{{-
+      if and (eq .chezmoi.os "linux") (eq $unameMachine "x86_64") }}x86_64-unknown-linux-gnu
+      {{- else if and (eq .chezmoi.os "linux") (eq $unameMachine "aarch64") }}aarch64-unknown-linux-musl
+      {{- else if and (eq .chezmoi.os "linux") (or (eq $unameMachine "armv7l") (eq $unameMachine "armv6l")) -}}arm-unknown-linux-musleabihf
+      {{- else if and (eq .chezmoi.os "freebsd") (eq $unameMachine "x86_64") }}x86_64-unknown-freebsd
+      {{- else -}}unsupported-platform
+    {{- end }}.tar.gz
+  path: starship
+  stripComponents: 0
+
+".local/bin/zoxide":
+  type: archive-file
+  url: https://github.com/ajeetdsouza/zoxide/releases/download/{{ .versions.zoxide }}/zoxide-{{ .versions.zoxide | trimPrefix "v" }}-{{- 
+	  $arch := .chezmoi.arch -}}
+    {{- if eq $arch "amd64" }}x86_64
+    {{- else if eq $arch "386" }}i686
+    {{- else if eq $arch "arm64" }}aarch64
+    {{- else if eq $arch "arm" }}
+      {{- if hasPrefix .uname.machine "armv7" }}armv7
+      {{- else }}arm
+      {{- end }}
+    {{- else }}{{ $arch }}
+    {{- end }}-unknown-linux-musl.tar.gz
+  path: zoxide
+
+".local/bin/carapace":
+  type: archive-file
+  # Architecture-dependent download URL
+  url: https://github.com/rsteube/carapace-bin/releases/download/{{ .versions.carapace }}/carapace-bin_{{ .versions.carapace | trimPrefix "v" }}_linux_{{- 
+    $arch := .chezmoi.arch -}}
+    {{- if eq $arch "amd64" }}amd64
+    {{- else if eq $arch "386" }}386
+    {{- else if eq $arch "arm64" }}arm64
+    {{- else if eq $arch "arm" }}
+      {{- if hasPrefix .uname.machine "armv6" }}armv6
+      {{- else }}arm
+      {{- end }}
+    {{- end }}.tar.gz
+  path: carapace
+# {{ end }}
+
+# {{ if and (eq .chezmoi.os "linux") (eq .chezmoi.arch "amd64") }}
+".local/bin/fd":
+  type: archive-file
+  url: "https://github.com/sharkdp/fd/releases/download/{{ .versions.fd }}/fd-{{ .versions.fd }}-{{ $unameMachine }}-unknown-linux-gnu.tar.gz"
+  stripComponents: 1
+  path: fd
+
+".local/bin/eza":
+  type: archive-file
+  url: https://github.com/eza-community/eza/releases/download/{{ .versions.eza }}/eza_{{
+      eq .chezmoi.arch "amd64" | ternary "x86_64" .chezmoi.arch }}-unknown-linux-gnu{{
+      eq .chezmoi.arch "arm" | ternary "eabihf" "" }}.tar.gz
+  stripComponents: 1
+  path: eza
+
+".local/bin/bat":
+  type: archive-file
+  url: https://github.com/sharkdp/bat/releases/download/{{ .versions.bat }}/bat-{{ .versions.bat }}-{{ $unameMachine }}-unknown-linux-gnu.tar.gz
+  stripComponents: 1
+  path: bat
+
+".local/bin/uv":
+  type: archive-file
+  url: "https://github.com/astral-sh/uv/releases/download/{{ .versions.uv }}/uv-{{ $unameMachine }}-unknown-{{ .chezmoi.os }}-gnu.tar.gz"
+  stripComponents: 1
+  path: "uv"
+# {{ end }}
