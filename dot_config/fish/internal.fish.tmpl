@@ -1,0 +1,16 @@
+# chezmoi completion
+{{ completion "fish" }}
+
+# carapace completion
+set -Ux CARAPACE_BRIDGES 'zsh,fish,bash,inshellisense' # optional
+carapace _carapace | source
+
+# xmake completion
+{{ if or (findExecutable "xmake" (list "bin" "/usr/bin" ".local/bin")) (lookPath "xmake") }}
+source ~/.xmake/profile
+{{ end }}
+
+# init some tools
+zoxide init fish | source
+starship init fish | source
+fzf --fish | source

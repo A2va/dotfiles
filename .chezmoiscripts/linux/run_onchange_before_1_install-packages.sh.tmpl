@@ -4,9 +4,6 @@
 curl -fsSL https://xmake.io/shget.text | bash
 {{ end }}
 
-
-
-
 # Install fish and nushell
 {{ if eq .chezmoi.osRelease.idLike "debian" }}
 # sudo apt update
@@ -18,6 +15,7 @@ sudo apt install fish
 {{   if not (or (findExecutable "fish" (list "bin" "/usr/bin" ".local/bin")) (lookPath "fish")) }}
 curl -fsSL https://apt.fury.io/nushell/gpg.key | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/fury-nushell.gpg
 echo "deb https://apt.fury.io/nushell/ /" | sudo tee /etc/apt/sources.list.d/fury.list
+sudo apt update
 sudo apt install nushell
 {{  end }}
 
