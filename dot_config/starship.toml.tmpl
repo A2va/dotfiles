@@ -1,0 +1,22 @@
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Inserts a blank line between shell prompts
+add_newline = true
+# command_timeout = 1000
+
+# Disable the package module, hiding it from the prompt completely
+[package]
+disabled = false
+
+[c]
+
+[lua]
+detect_files = ["!xmake.lua"]
+
+[custom.xmake]
+detect_files = ['xmake.lua'] # can specify filters but wildcards are not supported
+detect_folders = ['.xmake', 'build']
+style = "green bold"
+symbol = "◯"
+when = """xmake lua '{{ .chezmoi.homeDir }}/.config/starship.lua'"""

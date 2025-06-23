@@ -4,15 +4,14 @@
 export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense' # optional
 source <(carapace _carapace)
 
+
 # xmake completion
 {{ if or (findExecutable "xmake" (list "bin" "/usr/bin" ".local/bin")) (lookPath "xmake") }}
 source ~/.xmake/profile
 {{ end }}
 
-# init some tools
 eval "$(starship init bash)"
 eval "$(zoxide init bash)"
-eval "$(fzf --bash)"
 
 # chezmoi completion
 {{ completion "bash" }}

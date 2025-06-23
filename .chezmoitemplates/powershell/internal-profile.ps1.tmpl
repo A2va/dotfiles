@@ -2,14 +2,14 @@
 
 {{ $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links"}}
 
-$env:STARSHIP_CONFIG = "$HOME\AppData\Local\starship\starship.toml"
+$env:STARSHIP_CONFIG = "$HOME\.config\starship.toml"
 
 # chezmoi managed externals
 if ($env:Path -notlike "*\.local\bin*") {
     $env:Path += ";$env:USERPROFILE\.local\bin"
 }
 
-{{ if or (stat (joinPath $wingetLinksPath "starship.exe")) (lookPath "starship") }}
+{{ if or (findExecutable "starship" (list (joinPath $wingetLinksPath "starship.exe"))) (lookPath "starship") }}
 # https://github.com/starship/starship/issues/2057#issuecomment-831336770
 &"starship" init powershell --print-full-init | Out-String | Invoke-Expression
 {{- end }}
