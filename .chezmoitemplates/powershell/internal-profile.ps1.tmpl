@@ -30,6 +30,10 @@ if($PSVersionTable.PSVersion.Major -ge 7) {
 {{- end }}
 
 
+{{ if or (stat (joinPath $wingetLinksPath "fzf.exe")) (lookPath "fzf") }}
+Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+{{- end }}
+
 # zoxide completion
 {{ if or (stat (joinPath $wingetLinksPath "zoxide.exe")) (lookPath "zoxide") }}
 Invoke-Expression (& { (zoxide init powershell | Out-String) })

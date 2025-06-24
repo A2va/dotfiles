@@ -1,6 +1,5 @@
 Set-StrictMode -Version 3.0
 $ErrorActionPreference = "Stop"
- # ddda
 {{ $winget_packages := concat
   (dig "all" list .packages.winget) -}}
   # (dig .profile list .packages.winget) -}}
@@ -20,8 +19,26 @@ $ErrorActionPreference = "Stop"
 {{ end }}
 #endregion
 
-# ddddd
-
 # xmake can't be installed like the other packages, because if it installed like the others, xrepo
 # isn't available.
 winget install --id Xmake-io.Xmake --interactive
+
+
+# If in Windows PowerShell (Desktop edition), remove any PS7 paths:
+if ($PSVersionTable.PSEdition -eq 'Desktop') {
+    $mydocuments = [environment]::getfolderpath("mydocuments")
+    $userPath = Join-Path $mydocuments 'Documents\WindowsPowerShell\Modules'
+
+    $programFiles = "$env:ProgramFiles\WindowsPowerShell\Modules"
+    $systemPath   = "$env:WINDIR\System32\WindowsPowerShell\v1.0\Modules"
+
+    # Set PSModulePath to match normal PS 5.1 session
+    $Env:PSModulePath = "$userPath;$programFiles;$systemPath"
+
+    Write-Host "Corrected PSModulePath for Windows PowerShell:"
+}
+
+# Install PSFzf module for fuzzy finding in PowerShell
+Import-Module PackageManagement
+Import-Module PowerShellGet
+Install-Module -Name PSFzf -Scope CurrentUser
