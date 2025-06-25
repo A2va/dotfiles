@@ -3,20 +3,32 @@
 
 # Inserts a blank line between shell prompts
 add_newline = true
-# command_timeout = 1000
+command_timeout = 1000
 
-# Disable the package module, hiding it from the prompt completely
 [package]
 disabled = false
 
+# Dont' need those two because it just displays the compiler version
+# and it could be the wrong compiler for a given project
 [c]
+disabled = true
+[cpp]
+disabled = true
 
 [lua]
+# To not get xmake file get recognized as a lua project
 detect_files = ["!xmake.lua"]
 
 [custom.xmake]
-detect_files = ['xmake.lua'] # can specify filters but wildcards are not supported
+# bracketed format
+# format = '\[[$symbol (\($output\))]($style)\]'
+# standard format
+format = 'via [$symbol(\($output\))]($style)'
+detect_files = ['xmake.lua']
 detect_folders = ['.xmake', 'build']
 style = "green bold"
-symbol = "◯"
-when = """xmake lua '{{ .chezmoi.homeDir }}/.config/starship.lua'"""
+symbol = "◯ "
+# symbol = "⊗ "
+command = """xmake lua '{{ .chezmoi.homeDir }}/.config/starship/cmd.lua' -g"""
+# Disable when because it slow down the change of directory
+# when = """xmake lua '{{ .chezmoi.homeDir }}/.config/starship/when.lua'"""

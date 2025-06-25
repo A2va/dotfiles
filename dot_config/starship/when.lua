@@ -3,5 +3,4 @@ function main()
         -- trigger a return code != 0
         raise("")
     end
-    print("hello")
 end
