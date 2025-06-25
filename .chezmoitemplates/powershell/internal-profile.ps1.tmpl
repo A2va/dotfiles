@@ -3,6 +3,8 @@
 {{ $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links"}}
 
 $env:STARSHIP_CONFIG = "$HOME\.config\starship.toml"
+$env:STARSHIP_LOG = "error"
+$env:HOME = $HOME
 
 # chezmoi managed externals
 if ($env:Path -notlike "*\.local\bin*") {

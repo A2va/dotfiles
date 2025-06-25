@@ -24,7 +24,8 @@ $ErrorActionPreference = "Stop"
 winget install --id Xmake-io.Xmake --interactive
 
 
-# If in Windows PowerShell (Desktop edition), remove any PS7 paths:
+# If in Windows PowerShell (Desktop edition), remove any PS7 paths
+# used to install PSFzf module correctly in and get it working in both PS5.1 and PS7.
 if ($PSVersionTable.PSEdition -eq 'Desktop') {
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $userPath = Join-Path $mydocuments 'Documents\WindowsPowerShell\Modules'
@@ -34,8 +35,6 @@ if ($PSVersionTable.PSEdition -eq 'Desktop') {
 
     # Set PSModulePath to match normal PS 5.1 session
     $Env:PSModulePath = "$userPath;$programFiles;$systemPath"
-
-    Write-Host "Corrected PSModulePath for Windows PowerShell:"
 }
 
 # Install PSFzf module for fuzzy finding in PowerShell
