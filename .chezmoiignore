@@ -6,6 +6,7 @@ AppData
 
 {{ if ne .chezmoi.os "linux" }}
 .chezmoiscripts/linux/**
+.chezmoiexternals/linux.yaml.tmpl
 dot_bashprofile
 dot_bashrc
 dot_config

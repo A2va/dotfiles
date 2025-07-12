@@ -1,8 +1,11 @@
 Set-StrictMode -Version 3.0
 $ErrorActionPreference = "Stop"
-{{ $winget_packages := concat
-  (dig "all" list .packages.winget) -}}
-  # (dig .profile list .packages.winget) -}}
+
+{{- $winget_packages := list -}}
+{{- range .selected_software_groups }}
+  {{- $winget_packages = concat $winget_packages (dig . list .packages.winget) -}}
+{{- end }}
+
 
 #region Winget packages
 {{ $winget_list := (output "cmd" "/C" "winget export -s winget -o %TEMP%\\winget_list && type %TEMP%\\winget_list") -}}
@@ -21,8 +24,9 @@ $ErrorActionPreference = "Stop"
 
 # xmake can't be installed like the other packages, because if it installed like the others, xrepo
 # isn't available.
+{{- if has "dev" .data.selected_software_groups }}
 winget install --id Xmake-io.Xmake --interactive
-
+{{ end }}
 
 # If in Windows PowerShell (Desktop edition), remove any PS7 paths
 # used to install PSFzf module correctly in and get it working in both PS5.1 and PS7.

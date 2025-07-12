@@ -1,14 +1,24 @@
 packages:
   winget:
-    all:
-      - JernejSimoncic.Wget
+    core:
+      - Git.Git
       - Microsoft.WindowsTerminal
       - Microsoft.VisualStudioCode
-      - eza-community.eza
-      - ajeetdsouza.zoxide
+      - Microsoft.PowerShell
       - Nushell.Nushell
+    dev:
+      - astral-sh.uv
+    cli: 
       - rsteube.Carapace
       - Starship.Starship
-      - astral-sh.uv
+      - eza-community.eza
+      - ajeetdsouza.zoxide
+      - sharkdp.fd
       - sharkdp.bat
+      - junegunn.fzf
+    tool:
+      - JernejSimoncic.Wget
       - charmbracelet.vhs
+      - Typst.Typst
+      - AnyAssociation.Anytype
+      - Martchus.syncthingtray

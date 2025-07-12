@@ -3,14 +3,7 @@
   {{- $unameMachine = output "uname" "-m" | trim -}}
 {{- end }}
 
-# {{ if eq .chezmoi.os "linux" }}
-".local/bin/fzf":
-  type: archive-file
-  url: https://github.com/junegunn/fzf/releases/download/{{ .versions.fzf }}/fzf-{{ .versions.fzf | trimPrefix "v" }}-linux_{{
-      eq .chezmoi.arch "arm" | ternary ($unameMachine | trunc 5) .chezmoi.arch
-    }}.tar.gz
-  path: fzf
-
+{{- if has "cli" .selected_package_groups }}
 ".local/bin/starship":
   type: archive-file
   url: https://github.com/starship/starship/releases/download/{{ .versions.starship }}/starship-{{-
@@ -22,6 +15,21 @@
     {{- end }}.tar.gz
   path: starship
   stripComponents: 0
+
+".local/bin/carapace":
+  type: archive-file
+  # Architecture-dependent download URL
+  url: https://github.com/rsteube/carapace-bin/releases/download/{{ .versions.carapace }}/carapace-bin_{{ .versions.carapace | trimPrefix "v" }}_linux_{{- 
+    $arch := .chezmoi.arch -}}
+    {{- if eq $arch "amd64" }}amd64
+    {{- else if eq $arch "386" }}386
+    {{- else if eq $arch "arm64" }}arm64
+    {{- else if eq $arch "arm" }}
+      {{- if hasPrefix .uname.machine "armv6" }}armv6
+      {{- else }}arm
+      {{- end }}
+    {{- end }}.tar.gz
+  path: carapace
 
 ".local/bin/zoxide":
   type: archive-file
@@ -38,23 +46,13 @@
     {{- end }}-unknown-linux-musl.tar.gz
   path: zoxide
 
-".local/bin/carapace":
+".local/bin/fzf":
   type: archive-file
-  # Architecture-dependent download URL
-  url: https://github.com/rsteube/carapace-bin/releases/download/{{ .versions.carapace }}/carapace-bin_{{ .versions.carapace | trimPrefix "v" }}_linux_{{- 
-    $arch := .chezmoi.arch -}}
-    {{- if eq $arch "amd64" }}amd64
-    {{- else if eq $arch "386" }}386
-    {{- else if eq $arch "arm64" }}arm64
-    {{- else if eq $arch "arm" }}
-      {{- if hasPrefix .uname.machine "armv6" }}armv6
-      {{- else }}arm
-      {{- end }}
-    {{- end }}.tar.gz
-  path: carapace
-# {{ end }}
+  url: https://github.com/junegunn/fzf/releases/download/{{ .versions.fzf }}/fzf-{{ .versions.fzf | trimPrefix "v" }}-linux_{{
+      eq .chezmoi.arch "arm" | ternary ($unameMachine | trunc 5) .chezmoi.arch
+    }}.tar.gz
+  path: fzf
 
-# {{ if and (eq .chezmoi.os "linux") (eq .chezmoi.arch "amd64") }}
 ".local/bin/fd":
   type: archive-file
   url: "https://github.com/sharkdp/fd/releases/download/{{ .versions.fd }}/fd-{{ .versions.fd }}-{{ $unameMachine }}-unknown-linux-gnu.tar.gz"
@@ -74,10 +72,14 @@
   url: https://github.com/sharkdp/bat/releases/download/{{ .versions.bat }}/bat-{{ .versions.bat }}-{{ $unameMachine }}-unknown-linux-gnu.tar.gz
   stripComponents: 1
   path: bat
+{{- end }}
 
+{{- if has "dev" .selected_package_groups }}
 ".local/bin/uv":
   type: archive-file
   url: "https://github.com/astral-sh/uv/releases/download/{{ .versions.uv }}/uv-{{ $unameMachine }}-unknown-{{ .chezmoi.os }}-gnu.tar.gz"
   stripComponents: 1
   path: "uv"
-# {{ end }}
+{{- end }}
+
+# todo vhs, typst

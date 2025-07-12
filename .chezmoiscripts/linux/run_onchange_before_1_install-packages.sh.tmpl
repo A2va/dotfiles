@@ -1,27 +1,29 @@
 #! /bin/bash
 
-{{ if not (or (findExecutable "xmake" (list "bin" "/usr/bin" ".local/bin")) (lookPath "xmake")) }}
+{{- if has "dev" .selected_package_groups }}
+    {{- if not (or (findExecutable "xmake" (list "bin" "/usr/bin" ".local/bin")) (lookPath "xmake")) }}
 curl -fsSL https://xmake.io/shget.text | bash
+    {{ end }}
 {{ end }}
 
 # Install fish and nushell
-{{ if eq .chezmoi.osRelease.idLike "debian" }}
-# sudo apt update
-
-{{   if not (or (findExecutable "fish" (list "bin" "/usr/bin" ".local/bin")) (lookPath "fish")) }}
+{{- if eq .chezmoi.osRelease.idLike "debian" }}
+sudo apt update
+    {{- if not (or (findExecutable "fish" (list "bin" "/usr/bin" ".local/bin")) (lookPath "fish")) }}
 sudo apt install fish
-{{   end }}
-
-{{   if not (or (findExecutable "fish" (list "bin" "/usr/bin" ".local/bin")) (lookPath "fish")) }}
+    {{- end }}
+    {{- if has "core" .selected_package_groups }}
 curl -fsSL https://apt.fury.io/nushell/gpg.key | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/fury-nushell.gpg
 echo "deb https://apt.fury.io/nushell/ /" | sudo tee /etc/apt/sources.list.d/fury.list
 sudo apt update
 sudo apt install nushell
-{{  end }}
+    {{- end }}
+{{- end }}
 
 {{ else if eq .chezmoi.osRelease.id "fedora" }}
 sudo dnf install fish
-
+    {{- if has "core" .selected_package_groups }}
 sudo dnf copr enable atim/nushell
 sudo dnf install nushell
+    {{- end }}
 {{ end }}
