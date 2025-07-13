@@ -18,6 +18,14 @@ echo "deb https://apt.fury.io/nushell/ /" | sudo tee /etc/apt/sources.list.d/fur
 sudo apt update
 sudo apt install nushell
     {{- end }}
+
+    {{- if has "core" .selected_package_groups }}
+sudo apt install git
+    {{- end }}
+    {{- if has "tool" .selected_package_groups }}
+# dependencies for vhs
+sudo apt install ffmpeg
+    {{- end }}
 {{- end }}
 
 {{ else if eq .chezmoi.osRelease.id "fedora" }}
@@ -26,4 +34,10 @@ sudo dnf install fish
 sudo dnf copr enable atim/nushell
 sudo dnf install nushell
     {{- end }}
+
+    {{- if has "tool" .selected_package_groups }}
+# dependencies for vhs
+sudo dnf install ffmpeg-free
+    {{- end }}
+
 {{ end }}

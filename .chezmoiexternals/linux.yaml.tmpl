@@ -14,7 +14,6 @@
       {{- else -}}unsupported-platform
     {{- end }}.tar.gz
   path: starship
-  stripComponents: 0
 
 ".local/bin/carapace":
   type: archive-file
@@ -82,4 +81,37 @@
   path: "uv"
 {{- end }}
 
-# todo vhs, typst
+{{- if has "tool" .selected_package_groups }}
+".local/bin/typst":
+  type: archive-file
+  url: https://github.com/typst/typst/releases/download/{{ .versions.typst }}/typst-{{
+    if eq $unameMachine "x86_64" }}x86_64-unknown-linux-musl
+    {{- else if eq $unameMachine "aarch64" }}aarch64-unknown-linux-musl
+    {{- else if hasPrefix $unameMachine "armv7" }}armv7-unknown-linux-musleabi
+    {{- else }}unsupported-platform
+    {{- end }}.tar.xz
+  path: typst
+
+".local/bin/vhs":
+  type: archive-file
+  url: https://github.com/charmbracelet/vhs/releases/download/{{ .versions.vhs }}/vhs_{{ .versions.vhs | trimPrefix "v" }}_Linux_{{
+    if eq $unameMachine "x86_64" }}x86_64
+    {{- else if eq $unameMachine "aarch64" }}arm64
+    {{- else if hasPrefix $unameMachine "armv" }}arm
+    {{- else if eq $unameMachine "i686" }}i386
+    {{- else }}unsupported
+    {{- end }}.tar.gz
+  path: vhs
+
+# dep of vhs
+".local/bin/ttyd":
+  type: file
+  url: https://github.com/tsl0922/ttyd/releases/download/{{ .versions.ttyd }}/{{
+    if eq $unameMachine "x86_64" }}ttyd.x86_64
+    {{- else if eq $unameMachine "aarch64" }}ttyd.aarch64
+    {{- else if hasPrefix $unameMachine "armv7" }}ttyd.armhf
+    {{- else }}unsupported
+    {{- end }}
+  executable: true
+
+{{- end }}

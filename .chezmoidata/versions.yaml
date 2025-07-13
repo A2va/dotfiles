@@ -8,3 +8,6 @@ versions:
   bat: v0.25.0              # renovate: datasource=github-releases depName=sharkdp/bat
   zoxide: v0.9.8
   carapace: v1.3.3
+  typst: v0.13.1
+  vhs: v0.10.0
+  ttyd: 1.7.7 # dep of vhs

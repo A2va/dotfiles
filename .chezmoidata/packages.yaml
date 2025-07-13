@@ -19,6 +19,8 @@ packages:
     tool:
       - JernejSimoncic.Wget
       - charmbracelet.vhs
+      - Gyan.FFmpeg # dep of vhs
+      - tsl0922.ttyd # dep of vhs
       - Typst.Typst
       - AnyAssociation.Anytype
       - Martchus.syncthingtray
