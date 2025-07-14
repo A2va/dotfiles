@@ -3,7 +3,7 @@
   {{- $unameMachine = output "uname" "-m" | trim -}}
 {{- end }}
 
-{{- if has "cli" .selected_package_groups }}
+{{- if has "cli" .software_groups }}
 ".local/bin/starship":
   type: archive-file
   url: https://github.com/starship/starship/releases/download/{{ .versions.starship }}/starship-{{-
@@ -73,7 +73,7 @@
   path: bat
 {{- end }}
 
-{{- if has "dev" .selected_package_groups }}
+{{- if has "dev" .software_groups }}
 ".local/bin/uv":
   type: archive-file
   url: "https://github.com/astral-sh/uv/releases/download/{{ .versions.uv }}/uv-{{ $unameMachine }}-unknown-{{ .chezmoi.os }}-gnu.tar.gz"
@@ -81,7 +81,7 @@
   path: "uv"
 {{- end }}
 
-{{- if has "tool" .selected_package_groups }}
+{{- if has "tool" .software_groups }}
 ".local/bin/typst":
   type: archive-file
   url: https://github.com/typst/typst/releases/download/{{ .versions.typst }}/typst-{{

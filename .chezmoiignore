@@ -2,12 +2,33 @@
 .chezmoiscripts/windows/**
 Documents
 AppData
-{{ end }}
+{{- end }}
 
 {{ if ne .chezmoi.os "linux" }}
 .chezmoiscripts/linux/**
 .chezmoiexternals/linux.yaml.tmpl
+
 dot_bashprofile
 dot_bashrc
 dot_config
-{{ end }}
+{{- end }}
+
+# Shell configurations
+{{- if not (has "bash" .shells) }}
+dot_bashprofile
+dot_bashrc
+{{- end }}
+
+{{- if not (has "fish" .shells) }}
+dot_config/fish
+{{- end }}
+
+{{- if not (has "nushell" .shells) }}
+dot_config/nushell
+AppData/Roaming/nushell
+{{- end }}
+
+{{- if not (has "powershell" .shells) }}
+Documents/PowerShell
+Documents/WindowsPowerShell
+{{- end }}

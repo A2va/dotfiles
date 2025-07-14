@@ -1,15 +1,27 @@
+# Shell configuration
+{{- if eq .chezmoi.os "linux" }}
+  {{- $availableShells := list "nushell" "fish" "bash" -}}
+  {{- $defaultShells := list "fish" "bash" -}}
+{{- else if eq .chezmoi.os "windows" }}
+  {{- $availableShells := list "nushell" "powershell" -}}
+  {{- $defaultShells := list "powershell" -}}
+{{- end }}
 
-# Select software groups to install
-{{- $selectedSoftwareGroupsMessage := print
-  "Which groups of packages do you want to install?\n" 
-  "  core  - Essential tools like Git, VS Code, Terminal\n"
-  "  dev   - Developer tools like xmake, uv\n"
-  "  cli   - CLI enhancements like zoxide, bat, eza\n"
-  "  tool  - Miscellaneous tools (e.g. vhs, wget, typst)\n"
+{{- $shellPrompt := "Which shells do you want to configure? (Uninstalled shells will be installed automatically)" -}}
+{{- $chosenShells := promptMultichoice $shellPrompt $availableShells $defaultShells -}}
+
+# Software package group selection
+{{- $softwareGroupsPrompt := 
+  "Select which groups of software to install:\n"
+  "  core  - Essential tools (Git, VS Code, Terminal)\n"
+  "  dev   - Developer tools (xmake, uv, build tools)\n"
+  "  cli   - CLI productivity tools (zoxide, bat, eza)\n"
+  "  tool  - Extra utilities (vhs, wget, typst)\n"
 -}}
-{{- $allSoftwareGroups := list "core" "dev" "cli" "tool" -}}
-{{- $defaultSoftwareGroups := list "core" -}}
-{{- $selectedSoftwareGroups := promptMultichoice $selectedSoftwareGroupsMessage $allSoftwareGroups $defaultSoftwareGroups -}}
+{{- $availableGroups := list "core" "dev" "cli" "tool" -}}
+{{- $defaultGroups := list "core" -}}
+{{- $chosenSoftwareGroups := promptMultichoice $softwareGroupsPrompt $availableGroups $defaultGroups -}}
 
 [data]
-selected_software_groups = {{ $selectedSoftwareGroups | toToml }}
+shells = {{ $chosenShells | toToml }}
+software_groups = {{ $chosenSoftwareGroups | toToml }}

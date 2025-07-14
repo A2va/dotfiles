@@ -22,9 +22,29 @@ $ErrorActionPreference = "Stop"
 {{ end }}
 #endregion
 
+#region Shells installation
+{{- if has "powershell" .shells }}
+winget install `
+    --scope user --exact --source winget --id Microsoft.PowerShell `
+    --accept-source-agreements `
+    --accept-package-agreements `
+    --silent `
+    --disable-interactivity
+{{- end }}
+
+{{- if has "nushell" .shells }}
+winget install `
+    --scope user --exact --source winget --id Nushell.Nushell `
+    --accept-source-agreements `
+    --accept-package-agreements `
+    --silent `
+    --disable-interactivity
+{{- end }}
+#endregion
+
 # xmake can't be installed like the other packages, because if it installed like the others, xrepo
 # isn't available.
-{{- if has "dev" .data.selected_software_groups }}
+{{- if has "dev" .software_groups }}
 winget install --id Xmake-io.Xmake --interactive
 {{ end }}
 
@@ -37,7 +57,7 @@ if ($PSVersionTable.PSEdition -eq 'Desktop') {
     $programFiles = "$env:ProgramFiles\WindowsPowerShell\Modules"
     $systemPath   = "$env:WINDIR\System32\WindowsPowerShell\v1.0\Modules"
 
-    # Set PSModulePath to match normal PS 5.1 session
+    # Set PSModulePath to match a normal PS 5.1 session
     $Env:PSModulePath = "$userPath;$programFiles;$systemPath"
 }
 

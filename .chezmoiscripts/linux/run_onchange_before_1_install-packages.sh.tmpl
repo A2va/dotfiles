@@ -1,6 +1,6 @@
 #! /bin/bash
 
-{{- if has "dev" .selected_package_groups }}
+{{- if has "dev" .software_groups }}
     {{- if not (or (findExecutable "xmake" (list "bin" "/usr/bin" ".local/bin")) (lookPath "xmake")) }}
 curl -fsSL https://xmake.io/shget.text | bash
     {{ end }}

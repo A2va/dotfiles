@@ -4,8 +4,6 @@ packages:
       - Git.Git
       - Microsoft.WindowsTerminal
       - Microsoft.VisualStudioCode
-      - Microsoft.PowerShell
-      - Nushell.Nushell
     dev:
       - astral-sh.uv
     cli: 
