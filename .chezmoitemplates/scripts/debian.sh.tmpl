@@ -1,0 +1,20 @@
+{{- if has "core" .selected_package_groups }}
+sudo apt update
+    {{- if not (or (findExecutable "fish" (list "bin" "/usr/bin" ".local/bin")) (lookPath "fish")) }}
+sudo apt install fish
+    {{- end }}
+
+    {{- if not (or (findExecutable "nu" (list "bin" "/usr/bin" ".local/bin")) (lookPath "nu")) }}
+curl -fsSL https://apt.fury.io/nushell/gpg.key | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/fury-nushell.gpg
+echo "deb https://apt.fury.io/nushell/ /" | sudo tee /etc/apt/sources.list.d/fury.list
+sudo apt update
+sudo apt install nushell
+
+sudo apt install git
+    {{- end }}
+{{- end }}
+
+{{- if has "tool" .selected_package_groups }}
+# dependencies for vhs
+sudo apt install ffmpeg
+    {{- end }}

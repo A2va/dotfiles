@@ -1,0 +1,15 @@
+{{- if has "core" .selected_package_groups }}
+    {{- if not (or (findExecutable "fish" (list "bin" "/usr/bin" ".local/bin")) (lookPath "fish")) }}
+sudo dnf install fish
+    {{- end }}
+
+    {{- if not (or (findExecutable "nu" (list "bin" "/usr/bin" ".local/bin")) (lookPath "nu")) }}
+sudo dnf copr enable atim/nushell
+sudo dnf install nushell
+    {{- end }}
+{{- end }}
+
+{{- if has "tool" .selected_package_groups }}
+# dependencies for vhs
+sudo dnf install ffmpeg-free
+{{- end }}

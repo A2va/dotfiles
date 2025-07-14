@@ -6,38 +6,8 @@ curl -fsSL https://xmake.io/shget.text | bash
     {{ end }}
 {{ end }}
 
-# Install fish and nushell
 {{- if eq .chezmoi.osRelease.idLike "debian" }}
-sudo apt update
-    {{- if not (or (findExecutable "fish" (list "bin" "/usr/bin" ".local/bin")) (lookPath "fish")) }}
-sudo apt install fish
-    {{- end }}
-    {{- if has "core" .selected_package_groups }}
-curl -fsSL https://apt.fury.io/nushell/gpg.key | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/fury-nushell.gpg
-echo "deb https://apt.fury.io/nushell/ /" | sudo tee /etc/apt/sources.list.d/fury.list
-sudo apt update
-sudo apt install nushell
-    {{- end }}
-
-    {{- if has "core" .selected_package_groups }}
-sudo apt install git
-    {{- end }}
-    {{- if has "tool" .selected_package_groups }}
-# dependencies for vhs
-sudo apt install ffmpeg
-    {{- end }}
-{{- end }}
-
+{{ template "scripts/debian.ps1.tmpl" . }}
 {{ else if eq .chezmoi.osRelease.id "fedora" }}
-sudo dnf install fish
-    {{- if has "core" .selected_package_groups }}
-sudo dnf copr enable atim/nushell
-sudo dnf install nushell
-    {{- end }}
-
-    {{- if has "tool" .selected_package_groups }}
-# dependencies for vhs
-sudo dnf install ffmpeg-free
-    {{- end }}
-
+{{ template "scripts/fedora.ps1.tmpl" . }}
 {{ end }}
