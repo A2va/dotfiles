@@ -1,10 +1,13 @@
 # Shell configuration
+{{- $availableShells := list -}}
+{{- $defaultShells := list -}}
+
 {{- if eq .chezmoi.os "linux" }}
-  {{- $availableShells := list "nushell" "fish" "bash" -}}
-  {{- $defaultShells := list "fish" "bash" -}}
+  {{- $availableShells = list "nushell" "fish" "bash" -}}
+  {{- $defaultShells = list "fish" "bash" -}}
 {{- else if eq .chezmoi.os "windows" }}
-  {{- $availableShells := list "nushell" "powershell" -}}
-  {{- $defaultShells := list "powershell" -}}
+  {{- $availableShells = list "nushell" "powershell" -}}
+  {{- $defaultShells = list "powershell" -}}
 {{- end }}
 
 {{- $shellPrompt := "Which shells do you want to configure? (Uninstalled shells will be installed automatically)" -}}
