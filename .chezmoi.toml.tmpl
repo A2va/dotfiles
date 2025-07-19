@@ -16,10 +16,10 @@
 # Software package group selection
 {{- $softwareGroupsPrompt := 
   "Select which groups of software to install:\n"
-  "  core  - Essential tools (Git, VS Code, Terminal)\n"
+  "  core  - Essential tools (Git, VS Code)\n"
   "  dev   - Developer tools (xmake, uv, build tools)\n"
   "  cli   - CLI productivity tools (zoxide, bat, eza)\n"
-  "  tool  - Extra utilities (vhs, wget, typst)\n"
+  "  tool  - Extra utilities (typst, Anytype, vhs)\n"
 -}}
 {{- $availableGroups := list "core" "dev" "cli" "tool" -}}
 {{- $defaultGroups := list "core" -}}

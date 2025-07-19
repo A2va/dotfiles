@@ -11,3 +11,12 @@ curl -fsSL https://xmake.io/shget.text | bash
 {{ else if eq .chezmoi.osRelease.id "fedora" }}
 {{ template "scripts/fedora.ps1.tmpl" . }}
 {{ end }}
+
+{{- if has "tool" .software_groups }}
+flatpak install -y --user flathub io.anytype.anytype
+flatpak install -y --user flathub org.keepassxc.KeePassXC
+flatpak install -y --user flathub io.github.martchus.syncthingtray
+# https://github.com/flathub/io.github.martchus.syncthingtray/blob/master/README.md#known-flatpak-related-issues
+mkdir -p $HOME/.config/autostart
+ln -sf $HOME/.local/share/flatpak/app/io.github.martchus.syncthingtray/current/active/export/share/applications/io.github.martchus.syncthingtray.desktop $HOME/.config/autostart/
+{{- end }}

@@ -1,5 +1,5 @@
-
-{{ if eq .chezmoi.os "linux" }}
+{{- $fishShell := and (eq .chezmoi.os "linux") (findExecutable "fish" (list "/usr/bin" "/usr/local/bin" ".local/bin")) -}}
+{{- if $fishShell }}
 let fish_completer = {|spans|
     fish --command $"complete '--do-complete=($spans | str join ' ')'"
     | from tsv --flexible --noheaders --no-infer
@@ -8,7 +8,7 @@ let fish_completer = {|spans|
         if ($in | path exists) {$'"($in | str replace "\"" "\\\"" )"'} else {$in}
     }
 }
-{{ end}}
+{{- end }}
 
 let xmake_completer = { |spans|
   let line = ($spans | str join " ")
@@ -44,7 +44,7 @@ let external_completer = {|spans|
     }
 
     match $spans.0 {
-        {{ if eq .chezmoi.os "linux" -}}
+        {{ if $fishShell -}}
         # carapace completions are incorrect for nu
         nu => $fish_completer
         # fish completes commits and branch names in a nicer way
