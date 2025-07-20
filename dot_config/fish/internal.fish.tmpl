@@ -1,5 +1,10 @@
 set -x STARSHIP_LOG  "error"
 
+{{- if has "dev" .software_groups }}
+source "$HOME/.cargo/env.fish"
+rustup completions fish | source
+{{- end }}
+
 # chezmoi completion
 {{ completion "fish" }}
 

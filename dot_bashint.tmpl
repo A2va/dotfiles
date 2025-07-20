@@ -1,6 +1,10 @@
 # Internal bash profile for handling completion
-
 export STARSHIP_LOG='error'
+
+{{- if has "dev" .software_groups }}
+. "$HOME/.cargo/env"
+eval "$(rustup completions bash)"
+{{- end }}
 
 # carapace completion
 export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense' # optional

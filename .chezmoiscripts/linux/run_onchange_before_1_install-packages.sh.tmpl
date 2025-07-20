@@ -3,8 +3,12 @@
 {{- if has "dev" .software_groups }}
     {{- if not (or (findExecutable "xmake" (list "bin" "/usr/bin" ".local/bin")) (lookPath "xmake")) }}
 curl -fsSL https://xmake.io/shget.text | bash
-    {{ end }}
-{{ end }}
+    {{- end }}
+    {{- if not (or (findExecutable "rustup" (list "bin" "/usr/bin" ".local/bin")) (lookPath "rustup")) }}
+# Dont' prompt the user for installation options
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    {{- end }}
+{{- end }}
 
 {{- if eq .chezmoi.osRelease.idLike "debian" }}
 {{ template "scripts/debian.ps1.tmpl" . }}

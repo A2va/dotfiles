@@ -11,6 +11,10 @@ if ($env:Path -notlike "*\.local\bin*") {
     $env:Path += ";$env:USERPROFILE\.local\bin"
 }
 
+{{- if has "dev" .software_groups}}
+rustup completions powershell | Out-String | Invoke-Expression
+{{- end }}
+
 {{ if or (findExecutable "starship" (list (joinPath $wingetLinksPath "starship.exe"))) (lookPath "starship") }}
 # https://github.com/starship/starship/issues/2057#issuecomment-831336770
 &"starship" init powershell --print-full-init | Out-String | Invoke-Expression
