@@ -1,15 +1,57 @@
-# Minimal PowerShell Profile
-# Heavy configuration is loaded from internal.ps1
-
-# Source the internal configuration if it exists
 $internalPath = Join-Path $PSScriptRoot "internal.ps1"
 if (Test-Path -Path $internalPath) {
     . $internalPath
 }
 
-# Add your minimal aliases and functions here
-# Example aliases:
-# Set-Alias -Name ll -Value Get-ChildItem
-# Set-Alias -Name grep -Value Select-String
+# Functions
 
-# Add any user-specific customizations below this line
+## Create a new folder and jump inside
+function mk {
+    param(
+        [string]$name
+    )
+    $fullPath = Join-Path -Path (Get-Location) -ChildPath $name
+    New-Item -Path $fullPath -ItemType Directory -Force
+    Set-Location -Path $fullPath
+}
+
+## Show information about Git identity
+function gitid {
+    Write-Host "Current identity is"
+    Write-Host "Email: $(git config user.email)"
+    Write-Host "Name: $(git config user.name)"
+}
+
+## Fix incorrect origin
+function fixor {
+    param (
+        [string]$origin
+    )
+    
+    if ($origin) {
+        git config remote.origin.url $origin
+    } else {
+        Write-Host "Current origin is" -NoNewline
+        Write-Host "$(git config remote.origin.url)" -ForegroundColor Green
+        Write-Host "To change it, use: fixor <new-origin-url>"
+    }
+}
+
+# Aliases
+Set-Alias -Name ls -Value "eza"
+
+Set-Alias -Name x -Value "xmake"
+Set-Alias -Name xr -Value "xmake run"
+Set-Alias -Name xc -Value "xmake clean"
+function xbr {
+    xmake; xmake run
+}
+
+Set-Alias -Name gd -Value "gradle"
+Set-Alias -Name grr -Value "gradle run"
+Set-Alias -Name grb -Value "gradle build"
+Set-Alias -Name mvw -Value "./mvnw.cmd"
+
+Set-Alias -Name ca -Value "cargo"
+Set-Alias -Name car -Value "cargo run"
+Set-Alias -Name cab -Value "cargo build -q"

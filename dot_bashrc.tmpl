@@ -3,3 +3,43 @@ if [ -d "$HOME/.local/bin" ]; then
 fi
 
 . ~/.bashint
+
+## Create a new folder and jump inside
+mk() { mkdir -p "$@" && cd "$@"; }
+
+## Show information about Git identity
+gitid() {
+    echo "Current identity is"
+    echo "Email: $(git config user.email)"
+    echo "Name: $(git config user.name)"
+}
+
+fixor() {
+    if [ -n "$1" ]; then
+        git config remote.origin.url "$1"
+    else
+        echo "Current origin is $(git config remote.origin.url)"
+        echo "To change it run fixor <new-origin-url>"
+    fi
+}
+
+# Aliases
+alias ls=eza # A better ls wi
+alias ll="ls -l"
+alias la="ls -la"
+alias rm='rm -i'
+alias mv='mv -i'
+
+alias x=xmake
+alias xr="xmake run"
+alias xc="xmake clean"
+alias xbr="xmake && xmake run"
+
+alias gd=gradle # just `gradle`
+alias grr="gradle run" # Gradle Run
+alias grb="gradle build" # Gradle Build
+alias mvw="./mvnw" # call the maven wrapper (mvw instead of mvn)
+
+alias ca=cargo # just `cargo`
+alias car="cargo run" # cargo run
+alias cab="cargo build -q" # cargo build
