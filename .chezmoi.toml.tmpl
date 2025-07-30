@@ -1,4 +1,4 @@
-# Shell configuration
+{{/* Shell configuration */}}
 {{- $availableShells := list -}}
 {{- $defaultShells := list -}}
 
@@ -13,14 +13,14 @@
 {{- $shellPrompt := "Which shells do you want to configure? (Uninstalled shells will be installed automatically)" -}}
 {{- $chosenShells := promptMultichoice $shellPrompt $availableShells $defaultShells -}}
 
-# Software package group selection
-{{- $softwareGroupsPrompt := 
-  "Select which groups of software to install:\n"
-  "  core  - Essential tools (Git, VS Code)\n"
-  "  dev   - Developer tools (xmake, uv, build tools)\n"
-  "  cli   - CLI productivity tools (zoxide, bat, eza)\n"
-  "  tool  - Extra utilities (typst, Anytype, vhs)\n"
--}}
+{{/* Software package group selection */}}
+{{- $softwareGroupsPrompt := join "\n" (list
+  "Select which groups of software to install:"
+  "  core  - Essential tools (Git, VS Code)"
+  "  dev   - Developer tools (xmake, uv, build tools)"
+  "  cli   - CLI productivity tools (zoxide, bat, eza)"
+  "  tool  - Extra utilities (typst, Anytype, KeePassXC, vhs)"
+) -}}
 {{- $availableGroups := list "core" "dev" "cli" "tool" -}}
 {{- $defaultGroups := list "core" -}}
 {{- $chosenSoftwareGroups := promptMultichoice $softwareGroupsPrompt $availableGroups $defaultGroups -}}
@@ -28,3 +28,4 @@
 [data]
 shells = {{ $chosenShells | toToml }}
 software_groups = {{ $chosenSoftwareGroups | toToml }}
+
