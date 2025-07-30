@@ -2,10 +2,12 @@ Set-StrictMode -Version 3.0
 $ErrorActionPreference = "Stop"
 
 {{- $winget_packages := list -}}
-{{- range .selected_software_groups }}
-  {{- $winget_packages = concat $winget_packages (dig . list .packages.winget) -}}
+{{- range .software_groups }}
+  {{- $groupPackages := index $.packages.winget . -}}
+  {{- if $groupPackages }}
+    {{- $winget_packages = concat $winget_packages $groupPackages -}}
+  {{- end }}
 {{- end }}
-
 
 #region Winget packages
 {{ $winget_list := (output "cmd" "/C" "winget export -s winget -o %TEMP%\\winget_list && type %TEMP%\\winget_list") -}}
@@ -22,14 +24,16 @@ $ErrorActionPreference = "Stop"
 {{ end }}
 #endregion
 
+
+{{- if has "tool" .software_groups }}
 $installDir = "C:\Program Files\KeePassXC"
-$currentPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine)
+$currentPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)
 
 if ($currentPath -notlike "*$installDir*") {
     $newPath = $currentPath + ";" + $installDir
-    [Environment]::SetEnvironmentVariable("Path", $newPath, [EnvironmentVariableTarget]::Machine)
+    [Environment]::SetEnvironmentVariable("Path", $newPath, [EnvironmentVariableTarget]::User)
 }
-
+{{- end }}
 
 #region Shells installation
 {{- if has "powershell" .shells }}
@@ -66,11 +70,16 @@ if ($PSVersionTable.PSEdition -eq 'Desktop') {
     $programFiles = "$env:ProgramFiles\WindowsPowerShell\Modules"
     $systemPath   = "$env:WINDIR\System32\WindowsPowerShell\v1.0\Modules"
 
+    $origPSModulePath = $Env:PSModulePath
+
     # Set PSModulePath to match a normal PS 5.1 session
     $Env:PSModulePath = "$userPath;$programFiles;$systemPath"
-}
 
 # Install PSFzf module for fuzzy finding in PowerShell
-Import-Module PackageManagement
-Import-Module PowerShellGet
-Install-Module -Name PSFzf -Scope CurrentUser
+    Import-Module PackageManagement
+    Import-Module PowerShellGet
+    Install-Module -Name PSFzf -Scope CurrentUser -Force
+
+    # restore the original module path so PSReadLine can load
+    $Env:PSModulePath = $origPSModulePath
+}
