@@ -1,0 +1,141 @@
+function scr {
+    param (
+        [string]$Language,
+        [string]$Name
+    )
+
+    $VERSION = "v7"
+    $SCR_SUPPORTED = @("rust", "c", "cpp", "java", "gradle", "python", "scala", "md")
+    $JAVA_VERSION = 21
+
+    function Show-Color {
+        param (
+            [string]$Color,
+            [string]$Message
+        )
+        $colorMap = @{
+            red = "DarkRed"
+            blue = "Cyan"
+        }
+        Write-Host $Message -ForegroundColor ($colorMap[$Color])
+    }
+
+    function Save-File {
+        param (
+            [string]$Content,
+            [string]$Path
+        )
+        Set-Content -Path $Path -Value $Content -Encoding UTF8
+    }
+
+    if ($Language -eq "-v") {
+        Write-Host "PowerShell script $VERSION installed."
+        return
+    }
+
+    if (-not $Env:SCR_TMP_FOLDER) {
+        Show-Color red "Error: You must define SCR_TMP_FOLDER as a valid directory."
+        Show-Color blue 'Example: $Env:SCR_TMP_FOLDER = "C:\scratch_projects"'
+        return
+    }
+
+    if (-not $Language) {
+        Write-Host "Choose a language:"
+        $Language = $SCR_SUPPORTED | Out-GridView -Title "Select Language" -OutputMode Single
+        if (-not $Language) { return }
+    }
+
+    if (-not ($SCR_SUPPORTED -contains $Language)) {
+        Show-Color red "Error: '$Language' is not supported. Choose one of: $($SCR_SUPPORTED -join ', ')"
+        return
+    }
+
+    $UseCustomName = $false
+    if ($Name) {
+        if (Test-Path $Name) {
+            Show-Color red "Path '$Name' already exists. Aborting to prevent overwrite."
+            return
+        } else {
+            $UseCustomName = $true
+            $ProjectName = $Name
+        }
+    } else {
+        $timestamp = Get-Date -Format "yyyy-MM-dd-HHmmss"
+        $ProjectName = "scratch-$Language-$timestamp"
+    }
+
+    if (-not $UseCustomName) {
+        if (-not (Test-Path $Env:SCR_TMP_FOLDER)) {
+            Create-Directory -Path $Env:SCR_TMP_FOLDER -ErrorAction Stop
+        }
+        Set-Location $Env:SCR_TMP_FOLDER
+    }
+
+    Show-Color blue "Creating scratch project for '$Language' in folder '$ProjectName'..."
+
+    $entry = ""
+
+    switch ($Language) {
+        "rust" {
+            cargo new $ProjectName
+            Set-Location $ProjectName
+            $entry = "src/main.rs"
+        }
+        "md" {
+            $entry = "$ProjectName.md"
+            Save-File "# Markdown Scratch File" $entry
+        }
+        "c" {
+            New-Item -ItemType Directory -Name $ProjectName | Out-Null
+            Set-Location $ProjectName
+            $entry = "main.c"
+            Save-File '{{ template "scr/main.c.tmpl" . }}' $entry
+        }
+        "cpp" {
+            New-Item -ItemType Directory -Name $ProjectName | Out-Null
+            Set-Location $ProjectName
+            $entry = "main.cpp"
+            Save-File '{{ template "scr/main.cpp.tmpl" . }}' $entry
+        }
+        "java" {
+            New-Item -ItemType Directory -Name $ProjectName | Out-Null
+            Set-Location $ProjectName
+            $entry = "App.java"
+            Save-File '{{ template "scr/App.java.tmpl" . }}' $entry
+        }
+        "python" {
+            New-Item -ItemType Directory -Name $ProjectName | Out-Null
+            Set-Location $ProjectName
+            $entry = "main.py"
+            Save-File '{{ template "scr/main.py.tmpl" . }}' $entry
+        }
+        "gradle" {
+            New-Item -ItemType Directory -Name $ProjectName | Out-Null
+            Set-Location $ProjectName
+            & gradle init `
+                --type java-application `
+                --dsl kotlin `
+                --test-framework junit-jupiter `
+                --package scratch `
+                --project-name scratch `
+                --no-split-project `
+                --no-incubating `
+                --java-version $JAVA_VERSION
+            $entry = "app/src/main/java/scratch/App.java"
+        }
+        "scala" {
+            New-Item -ItemType Directory -Name $ProjectName | Out-Null
+            Set-Location $ProjectName
+            $entry = "Main.scala"
+            Save-File '{{ template "scr/Main.scala.tmpl" . }}' $entry
+            Save-File '{{ template "scr/scalafmt.conf.tmpl" . }}' ".scalafmt.conf"
+        }
+    }
+
+    if (-not $Env:SCR_EDITOR) {
+        Show-Color red "Scratch project created, but SCR_EDITOR is not set."
+        Show-Color blue 'Example: $Env:SCR_EDITOR = "code .; code"'
+    } else {
+        Invoke-Expression "$Env:SCR_EDITOR $entry"
+    }
+}

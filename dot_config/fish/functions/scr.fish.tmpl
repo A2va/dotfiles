@@ -1,0 +1,154 @@
+# scr - Generate scratch project in various languages based on simple templates or generators
+# The generated folder will be stored in SCR_TMP_FOLDER with a scratch-option-datetime format or in the current folder with a given name
+# Note: All generated options do support execution by r.fish !
+# Supported options: $SCR_SUPPORTED
+# Env: SCR_TMP_FOLDER and SCR_EDITOR
+# Author: Samuel Roland
+# Synopsis: scr [option] [destination folder name]
+# Examples: scr # then you can choose among supported templates
+#           scr rust # Create a new cargo project
+#           scr c # Create a hello world in main.c
+#           scr cpp # Create a hello world in main.cpp
+#           scr python # Create a simple hello world main.py
+#           scr java # Create a single App.java with hello world
+#           scr gradle # Create a Java project using Gradle (gradle init)
+#           scr scala # Create a single Main.scala with hello world
+#           scr cpp my-awesome-project # Create a folder my-awesome-project in the current folder and put a main.cpp inside
+# License: MIT
+# Notice: Copyright (c) 2025 Samuel Roland
+# Source: https://codeberg.org/samuelroland/productivity/src/branch/main/HEIG/tools
+#
+# TODO: do we want to add a way to name the scratch folder and put it in current folder instead of the SCR_TMP_FOLDER ?
+
+# TODO: scr sbt # Create a Scala project with SBT
+set VERSION v7
+set SCR_SUPPORTED rust c cpp java gradle python scala md
+
+function scr
+    if [ "$argv[1]" = -v ]
+        echo "Fish function $VERSION installed."
+        return
+    end
+
+    # Constant values that should be updated when it makes sense (when new LTS are coming)
+    set JAVA_VERSION 21
+    # Utilities
+    function save_file # args: content filename
+        echo "$argv[1]" >$argv[2]
+    end
+    # Easy printing of colored text
+    function color
+        set_color $argv[3] $argv[1]
+        echo $argv[2]
+        set_color normal
+    end
+
+    # Checking SCR_TMP_FOLDER definition
+    if ! test -d "$SCR_TMP_FOLDER"
+        color red "Error: you need to define the environment variable SCR_TMP_FOLDER to a valid folder to define where these scratch folders will be created."
+        echo "Here is an example to put in your config.fish:"
+        color blue "set -g SCR_TMP_FOLDER ~/path/somewhere"
+        return
+    end
+
+    # Checking arguments validity
+    if test (count $argv) -lt 1
+        set lang (printf %s\n $SCR_SUPPORTED | fzf)
+    else
+        set lang $argv[1]
+    end
+    if test -z "$lang"
+        return # probably entered escape, so let's quit here
+    end
+    if ! contains $lang $SCR_SUPPORTED
+        color red "Error: $lang is not in supported languages list: $SCR_SUPPORTED"
+        return
+    end
+
+    # Define the final folder name
+    set -g name scratch-$lang-(date -u +%Y-%m-%d-%H%M%S)
+    set custom_name 0
+    if test (count $argv) -gt 1
+        if test -f $argv[2]
+            color red "Path $argv[2] already exists, stopped to avoid erasing existing files for this $lang option."
+            return
+        else
+            set custom_name 1
+            set -g name $argv[2]
+        end
+    end
+
+    # Move to parent folder
+    if test $custom_name -eq 0
+        cd $SCR_TMP_FOLDER
+    end
+
+    # Create scratch project for each option
+    color blue "Creating scratch project for $lang inside $name"
+    switch $lang
+        case rust
+            cargo new "$name"
+            cd $name
+            set entry src/main.rs
+        case md
+            touch "$name.md"
+            set entry "$name.md"
+        case c
+            mkdir $name && cd $name
+            save_file """{{ template "scr/main.c.tmpl" . }}""" main.c
+            set entry main.c
+        case cpp
+            mkdir $name && cd $name
+            save_file """{{ template "scr/main.cpp.tmpl" . }}""" main.cpp
+            set entry main.cpp
+        case java
+            mkdir $name && cd $name
+            set entry App.java
+            save_file """{{ template "scr/App.java.tmpl" . }}""" App.java
+        case python
+            mkdir $name && cd $name
+            save_file """{{ template "scr/main.py.tmpl" . }}""" main.py
+            set entry main.py
+            # Java with Gradle
+        case gradle
+            # https://docs.gradle.org/current/userguide/build_init_plugin.html
+            mkdir $name && cd $name
+            gradle init \
+                # Setup a Java application
+                --type java-application \
+                # Using the Kotlin DSL to define build configurations
+                --dsl kotlin \
+                # Enable the default test framework JUnit
+                --test-framework junit-jupiter \
+                # Choose the package name, the only folder under app/src/main/java
+                --package scratch \
+                # The project names impacts the resulted jar
+                --project-name scratch \
+                # The regular structure used for a single project
+                --no-split-project \
+                # No incubating features that might change in the future
+                --no-incubating \
+                --java-version $JAVA_VERSION
+            set entry app/src/main/java/scratch/App.java
+
+        case scala
+            mkdir $name && cd $name
+            set entry Main.scala
+            save_file """{{ template "scr/Main.scala.tmpl" . }}""" Main.scala
+            save_file """{{ template "scr/scalafmt.conf.tmpl" . }}""" .scalafmt.conf
+    end
+
+    # TODO: really a good idea to have another env variable ?
+    if test -z "$SCR_EDITOR"
+        color red "Scratch project has been created but scr was doesn't know how you would prefer to open it ..."
+        color blue "scr opens the editor defined in environment variable SCR_EDITOR, and gives the entry file as first argument."
+        echo "Here is an example to put in your config.fish, here opening VSCode folder and entry file"
+        color blue 'set -g SCR_EDITOR "code . && code"'
+        echo "Another example opening neovim"
+        color blue 'set -g SCR_EDITOR "nvim"'
+        echo "Maybe you just want to same editor as usual"
+        color blue 'set -g SCR_EDITOR $EDITOR'
+    else
+        fish -c "$SCR_EDITOR $entry"
+    end
+end
