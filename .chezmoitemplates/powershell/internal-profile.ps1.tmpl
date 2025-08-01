@@ -1,5 +1,8 @@
 # Internal powershell profile for handling completion
 
+# Load all 'autoload' scripts
+Get-ChildItem "$env:USERPROFILE\.config\powershell\autoload\*.ps1" | %{.$_} 
+
 {{ $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links"}}
 
 $env:STARSHIP_CONFIG = "$HOME\.config\starship.toml"

@@ -1,3 +1,12 @@
+$env.path ++= ["~/.local/bin"]
+
+# Add autoload directory in the .config of the user directory
+# Useful for Windows
+let autoload_dir = ($nu.path.home | path join ".config/nushell/autoload")
+if not ($nu.user-autoload-dirs | any {|dir| ($dir | path expand) == $autoload_dir }) {
+    $env.config.nu.user-autoload-dirs = ($nu.user-autoload-dirs ++ [$autoload_dir])
+}
+
 source ($nu.data-dir  | path join 'internal.nu')
 
 # Functions
@@ -43,7 +52,7 @@ alias xbr = xmake; xmake run
 alias gd = gradle
 alias grr = gradle run
 alias grb = gradle build
-{{- if .chezmoi.os eq "linux" }}
+{{- if eq .chezmoi.os "linux" }}
 alias mvw = "./mvnw"
 {{ else }}
 alias mvw = "./mvnw.cmd"
