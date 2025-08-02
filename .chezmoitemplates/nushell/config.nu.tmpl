@@ -1,12 +1,5 @@
 $env.path ++= ["~/.local/bin"]
 
-# Add autoload directory in the .config of the user directory
-# Useful for Windows
-let autoload_dir = ($nu.path.home | path join ".config/nushell/autoload")
-if not ($nu.user-autoload-dirs | any {|dir| ($dir | path expand) == $autoload_dir }) {
-    $env.config.nu.user-autoload-dirs = ($nu.user-autoload-dirs ++ [$autoload_dir])
-}
-
 source ($nu.data-dir  | path join 'internal.nu')
 
 # Functions
@@ -18,7 +11,7 @@ def mk [dirname] {
 }
 
 ## Show information about Git identity
-def gitid {
+def gitid [] {
     echo "Current identity is"
     echo "Name: $(git config user.name)"
     echo "Email: $(git config user.email)"
@@ -32,7 +25,9 @@ def fixor [origin?: string] {
             echo $"Current origin is: (ansi red)($current_origin)(ansi reset)"
             echo "No origin provided. Usage: fixor <new-origin-url>"
         }
-        _ => git remote set-url origin $origin
+        _ => { 
+            git remote set-url origin $origin
+        }
     }
 }
 
@@ -47,15 +42,17 @@ alias mv = mv -i
 alias x = xmake
 alias xr = xmake run
 alias xc = xmake clean
-alias xbr = xmake; xmake run
+def xmr [] {
+    xmake and xmake run
+}
 
 alias gd = gradle
 alias grr = gradle run
 alias grb = gradle build
 {{- if eq .chezmoi.os "linux" }}
-alias mvw = "./mvnw"
+alias mvw = ./mvnw
 {{ else }}
-alias mvw = "./mvnw.cmd"
+alias mvw = ./mvnw.cmd
 {{ end }}
 
 alias ca = cargo

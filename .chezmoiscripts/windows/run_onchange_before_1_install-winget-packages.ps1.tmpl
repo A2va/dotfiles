@@ -52,6 +52,10 @@ winget install `
     --accept-package-agreements `
     --silent `
     --disable-interactivity
+
+$config = "$env:USERPROFILE\.config\"
+[Environment]::SetEnvironmentVariable("XDG_CONFIG_HOME", $config, [EnvironmentVariableTarget]::User)
+[Environment]::SetEnvironmentVariable("XDG_DATA_HOME", $config, [EnvironmentVariableTarget]::User)
 {{- end }}
 #endregion
 
