@@ -1,33 +1,29 @@
-let version = "v7"
-let supported = [rust c cpp java gradle python scala md]
-let java_version = 21
 
-let show_color = {|color: string, msg: string|
-let colors = {
-    red: "\e[31m"
-    blue: "\e[36m"
-}
-let reset = "\e[0m"
-print $"($colors | get $color)($msg)($reset)"
+def show_color [color: string, msg: string] {
+    let colors = {
+        red: "\e[31m"
+        blue: "\e[36m"
+    }
+    let reset = "\e[0m"
+    print $"($colors | get $color)($msg)($reset)"
 }
 
-let save_file = {|content: string, path: string|
-$content | save --force $path
-}
-
-
-def scr [
+def --env scr [
   language?: string,
   name?: string
 ] {
-    let language = $language
+    let version = "v7"
+    let supported = [rust c cpp java gradle python scala md]
+    let java_version = 21
+
+    mut language = $language
 
     if $language == "-v" {
         print $"Nushell script ($version) installed."
         return
     }
 
-    if not ($env.SCR_TMP_FOLDER?) {
+    if 'SCR_TMP_FOLDER' not-in $env  {
         show_color red "Error: You must define SCR_TMP_FOLDER as a valid directory."
         show_color blue 'Example: $env.SCR_TMP_FOLDER = "/tmp/scratch_projects"'
         return
@@ -35,11 +31,13 @@ def scr [
 
     if ($language | is-empty) {
         print "Choose a language:"
-        mut language = $supported | input list "Select Language:"
-        if ($language | is-empty) { return }
+        $language = $supported | input list "Select Language:"
+        if ($language | is-empty) { 
+            return 
+        }
     }
 
-    if not ($supported | any {|l| $l == $language }) {
+    if not ($language in $supported) {
         show_color red $"Error: '($language)' is not supported. Choose one of: ($supported | str join ', ')"
         return
     }
@@ -75,31 +73,31 @@ def scr [
         }
         "md" => {
             $entry = $"($project_name).md"
-            save_file "# Markdown Scratch File" $entry
+            "# Markdown Scratch File" | save --force $entry
         }
         "c" => {
             mkdir $project_name
             cd $project_name
             $entry = "main.c"
-            save_file '{{ template "scr/main.c.tmpl" . }}' $entry
+            '{{ template "scr/main.c.tmpl" . }}' | save --force $entry
         }
         "cpp" => {
             mkdir $project_name
             cd $project_name
             $entry = "main.cpp"
-            save_file '{{ template "scr/main.cpp.tmpl" . }}' $entry
+            '{{ template "scr/main.cpp.tmpl" . }}' | save --force $entry
         }
         "java" => {
             mkdir $project_name
             cd $project_name
             $entry = "App.java"
-            save_file '{{ template "scr/App.java.tmpl" . }}' $entry
+            '{{ template "scr/App.java.tmpl" . }}' | save --force $entry
         }
         "python" => {
             mkdir $project_name
             cd $project_name
             $entry = "main.py"
-            save_file '{{ template "scr/main.py.tmpl" . }}' $entry
+            '{{ template "scr/main.py.tmpl" . }}' | save --force $entry
         }
         "gradle" => {
             mkdir $project_name
@@ -113,7 +111,7 @@ def scr [
                 --project-name scratch
                 --no-split-project
                 --no-incubating
-                --java-version $env.JAVA_VERSION
+                --java-version $java_version
             )
             $entry = "app/src/main/java/scratch/App.java"
         }
@@ -121,12 +119,12 @@ def scr [
             mkdir $project_name
             cd $project_name
             $entry = "Main.scala"
-            save_file '{{ template "scr/Main.scala.tmpl" . }}' $entry
-            save_file '{{ template "scr/scalafmt.conf.tmpl" . }}' ".scalafmt.conf"
+            '{{ template "scr/Main.scala.tmpl" . }}' | save --force $entry
+            '{{ template "scr/scalafmt.conf.tmpl" . }}' | save --force ".scalafmt.conf"
         }
     }
 
-    if not ($env.SCR_EDITOR?) {
+    if 'SCR_EDITOR' not-in $env  {
         show_color red "Scratch project created, but SCR_EDITOR is not set."
         show_color blue 'Example: $env.SCR_EDITOR = "code .; code"'
     } else {
