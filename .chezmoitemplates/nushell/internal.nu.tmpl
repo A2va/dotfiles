@@ -10,6 +10,7 @@ let fish_completer = {|spans|
 }
 {{- end }}
 
+{{- if has "xmake" .software_checks }}
 let xmake_completer = { |spans|
   let line = ($spans | str join " ")
   let cursor = ($line | str length)
@@ -18,6 +19,7 @@ let xmake_completer = { |spans|
     ^xmake lua "private.utils.complete" $cursor "nospace-json" $line
   } | from json | get value
 }
+{{- end }}
 
 let carapace_completer = {|spans: list<string>|
     carapace $spans.0 nushell ...$spans
@@ -54,21 +56,32 @@ let external_completer = {|spans|
         nu => $carapace_completer
         git => $carapace_completer
         {{ end -}}
-
+        {{- if has "xmake" .software_checks }}
         xmake => $xmake_completer
+        {{- end }}
         # use zoxide completions for zoxide commands
         __zoxide_z | __zoxide_zi => $zoxide_completer
         _ => $carapace_completer
     } | do $in $spans
 }
 
+{{- if has "uv" .software_checks }}
+source ~/.cache/uv/init.nu
+{{- end }}
+
+{{- if has "carapace" .software_checks }}
 $env.config.completions.external = {
   enable: true
   completer: $external_completer
 }
-
-$env.STARSHIP_LOG = 'error'
-
-source ~/.cache/zoxide/init.nu
-source ~/.cache/starship/init.nu
 source ~/.cache/carapace/init.nu
+{{- end }}
+
+{{- if has "starship" .software_checks }}
+$env.STARSHIP_LOG = 'error'
+source ~/.cache/starship/init.nu
+{{- end }}
+
+{{- if has "zoxide" .software_checks }}
+source ~/.cache/zoxide/init.nu
+{{- end }}

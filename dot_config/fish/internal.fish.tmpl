@@ -1,23 +1,39 @@
 set -x STARSHIP_LOG  "error"
 
-{{- if has "dev" .software_groups }}
+# chezmoi completion
+{{ completion "fish" }}
+
+{{- if has "rustup" .software_checks }}
+# rustup completion
 source "$HOME/.cargo/env.fish"
 rustup completions fish | source
 {{- end }}
 
-# chezmoi completion
-{{ completion "fish" }}
-
-# carapace completion
-set -Ux CARAPACE_BRIDGES 'zsh,fish,bash,inshellisense' # optional
-carapace _carapace | source
-
+{{ if has "xmake" .software_checks }}
 # xmake completion
-{{ if or (findExecutable "xmake" (list "bin" "/usr/bin" ".local/bin")) (lookPath "xmake") }}
 source ~/.xmake/profile
 {{ end }}
 
-# init some tools
-zoxide init fish | source
+{{- if has "uv" .software_checks }}
+# uv completion
+uv generate-shell-completion fish
+{{- end }}
+
+# Setup cli tools
+{{- if has "carapace" .software_checks }}
+# carapace completion
+set -Ux CARAPACE_BRIDGES 'zsh,fish,bash,inshellisense' # optional
+carapace _carapace | source
+{{- end }}
+
+{{- if has "starship" .software_checks }}
 starship init fish | source
+{{- end }}
+
+{{- if has "zoxide" .software_checks }}
+zoxide init fish | source
+{{- end }}
+
+{{- if has "fzf" .software_checks }}
 fzf --fish | source
+{{- end }}

@@ -25,7 +25,47 @@
 {{- $defaultGroups := list "core" -}}
 {{- $chosenSoftwareGroups := promptMultichoice $softwareGroupsPrompt $availableGroups $defaultGroups -}}
 
+{{/* ~~~~~ Software Checks ~~~~~ */}}
+{{- $locationCheck := list -}}
+{{- if eq .chezmoi.os "linux" }}
+  {{- $locationCheck = list "bin" "/usr/bin" ".local/bin" -}}
+{{- else if eq .chezmoi.os "windows" }}
+  {{ $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links"}}
+  {{- $locationCheck = list $wingetLinksPath -}}
+{{- end }}
+
+{{- $groupTools := dict
+      "dev"  (list "xmake" "rustup" "uv")
+      "cli"  (list "carapace" "starship" "zoxide" "fzf")
+-}}
+{{- $otherTools := (list "uv")}}
+
+{{- /* Build a list of all tools to check based on chosen groups */}}
+{{- $toolsFromChosenGroups := list -}}
+{{- range $groupName := $chosenSoftwareGroups }}
+  {{- if hasKey $groupTools $groupName }}
+    {{- $toolsInGroup := get $groupTools $groupName -}}
+    {{- $toolsFromChosenGroups = concat $toolsFromChosenGroups $toolsInGroup -}}
+  {{- end -}}
+{{- end }}
+
+{{- $allTools := $otherTools -}}
+{{- range $_, $tools := $groupTools -}}
+  {{- $allTools = concat $allTools $tools -}}
+{{- end }}
+
+
+{{- /* A tool is added if it's in a selected group OR if it's already installed. */ -}}
+{{- $softwareChecks := list -}}
+{{- range $tool := $allTools | uniq }}
+  {{- $isInstalled := or (findExecutable $tool $locationCheck) (lookPath $tool) -}}
+  {{- $isInChosenGroup := has $tool $toolsFromChosenGroups -}}
+  {{- if or $isInChosenGroup $isInstalled }}
+    {{- $softwareChecks = append $softwareChecks $tool -}}
+  {{- end -}}
+{{- end }}
+
 [data]
 shells = {{ $chosenShells | toToml }}
 software_groups = {{ $chosenSoftwareGroups | toToml }}
-
+software_checks = {{ $softwareChecks | toToml }}

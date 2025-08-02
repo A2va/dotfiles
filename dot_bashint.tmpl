@@ -1,23 +1,40 @@
 # Internal bash profile for handling completion
-export STARSHIP_LOG='error'
 
-{{- if has "dev" .software_groups }}
+# chezmoi completion
+{{ completion "bash" }}
+
+{{- if has "rustup" .software_checks }}
+# rustup completion
 . "$HOME/.cargo/env"
 eval "$(rustup completions bash)"
 {{- end }}
 
+{{- if has "xmake" .software_checks }}
+# xmake completion
+source ~/.xmake/profile
+{{- end }}
+
+{{- if has "uv" .software_checks }}
+# uv completion
+uv generate-shell-completion bash
+{{- end }}
+
+# Setup cli tools
+{{- if has "carapace" .software_checks }}
 # carapace completion
 export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense' # optional
 source <(carapace _carapace)
+{{- end }}
 
-
-# xmake completion
-{{ if or (findExecutable "xmake" (list "bin" "/usr/bin" ".local/bin")) (lookPath "xmake") }}
-source ~/.xmake/profile
-{{ end }}
-
+{{- if has "starship" .software_checks }}
+export STARSHIP_LOG='error'
 eval "$(starship init bash)"
-eval "$(zoxide init bash)"
+{{- end }}
 
-# chezmoi completion
-{{ completion "bash" }}
+{{- if has "zoxide" .software_checks }}
+eval "$(zoxide init bash)"
+{{- end }}
+
+{{- if has "fzf" .software_checks }}
+fzf --bash | source
+{{- end }}

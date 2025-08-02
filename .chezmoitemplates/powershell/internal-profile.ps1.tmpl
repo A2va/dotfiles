@@ -2,11 +2,7 @@
 
 # Load all 'autoload' scripts
 Get-ChildItem "$env:USERPROFILE\.config\powershell\autoload\*.ps1" | %{.$_} 
-
 {{ $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links"}}
-
-$env:STARSHIP_CONFIG = "$HOME\.config\starship.toml"
-$env:STARSHIP_LOG = "error"
 $env:HOME = $HOME
 
 # chezmoi managed externals
@@ -14,21 +10,63 @@ if ($env:Path -notlike "*\.local\bin*") {
     $env:Path += ";$env:USERPROFILE\.local\bin"
 }
 
-{{- if has "dev" .software_groups}}
-rustup completions powershell | Out-String | Invoke-Expression
-{{- end }}
-
-{{ if or (findExecutable "starship" (list (joinPath $wingetLinksPath "starship.exe"))) (lookPath "starship") }}
-# https://github.com/starship/starship/issues/2057#issuecomment-831336770
-&"starship" init powershell --print-full-init | Out-String | Invoke-Expression
-{{- end }}
-
 # chezmoi completion
 {{ completion "powershell" }}
 
-# carapace completion
-{{ if or (stat (joinPath $wingetLinksPath "carapace.exe")) (lookPath "carapace") }}
+{{- if has "rustup" .software_checks}}
+rustup completions powershell | Out-String | Invoke-Expression
+{{- end }}
 
+{{ if has "xmake" .software_checks  }}
+# xmake completion
+# PowerShell parameter completion for xmake
+Register-ArgumentCompleter -Native -CommandName xmake -ScriptBlock {
+    param($commandName, $wordToComplete, $cursorPosition)
+    $complete = "$wordToComplete"
+    if (-not $commandName) {
+        $complete = $complete + " "
+    }
+    $oldenv = $env:XMAKE_SKIP_HISTORY
+    $env:XMAKE_SKIP_HISTORY = 1
+    $results = xmake lua "private.utils.complete" $cursorPosition "nospace-json" "$complete" | ConvertFrom-Json | Sort-Object -Property value
+    $results | ForEach-Object {
+        $hasdesc = [bool] $_.psobject.Properties['description']
+        if ($hasdesc) {
+            $desc = " - $($_.description)"
+        } else {
+            $desc = ""
+        }
+        [System.Management.Automation.CompletionResult]::new($_.value, "$($_.value)$desc", 'ParameterValue', $_.value)
+    }
+    $env:XMAKE_SKIP_HISTORY = $oldenv
+}
+
+# PowerShell parameter completion for xrepo
+Register-ArgumentCompleter -Native -CommandName xrepo -ScriptBlock {
+    param($commandName, $wordToComplete, $cursorPosition)
+    $complete = "$wordToComplete"
+    if (-not $commandName) {
+        $complete = $complete + " "
+    }
+    $oldenv = $env:XMAKE_SKIP_HISTORY
+    $env:XMAKE_SKIP_HISTORY = 1
+    $results = xmake lua "private.xrepo.complete" $cursorPosition "nospace-json" "$complete" | ConvertFrom-Json | Sort-Object -Property value
+    $results | ForEach-Object {
+        $hasdesc = [bool] $_.psobject.Properties['description']
+        if ($hasdesc) {
+            $desc = " - $($_.description)"
+        } else {
+            $desc = ""
+        }
+        [System.Management.Automation.CompletionResult]::new($_.value, "$($_.value)$desc", 'ParameterValue', $_.value)
+    }
+    $env:XMAKE_SKIP_HISTORY = $oldenv
+}
+{{- end }}
+
+
+{{- if has "carapace" .software_checks }}
+# carapace completion
 # carapace is not usable under powershell v5.1
 if($PSVersionTable.PSVersion.Major -ge 7) {
     $env:CARAPACE_BRIDGES = 'inshellisense'
@@ -38,13 +76,15 @@ if($PSVersionTable.PSVersion.Major -ge 7) {
 }
 {{- end }}
 
-
-{{ if or (stat (joinPath $wingetLinksPath "fzf.exe")) (lookPath "fzf") }}
-Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+{{- if has "starship" .software_checks }}
+# https://github.com/starship/starship/issues/2057#issuecomment-831336770
+$env:STARSHIP_CONFIG = "$HOME\.config\starship.toml"
+$env:STARSHIP_LOG = "error"
+&"starship" init powershell --print-full-init | Out-String | Invoke-Expression
 {{- end }}
 
+{{- if has "zoxide" .software_checks }}
 # zoxide completion
-{{ if or (stat (joinPath $wingetLinksPath "zoxide.exe")) (lookPath "zoxide") }}
 Invoke-Expression (& { (zoxide init powershell | Out-String) })
 filter __zoxide_escapeStringWithSpecialChars {
     $_ -replace '\s|#|@|\$|;|,|''|\{|\}|\(|\)|"|`|\||<|>|&','`$&'
@@ -92,52 +132,8 @@ Register-ArgumentCompleter -Native -CommandName "z" -ScriptBlock {
         [System.Management.Automation.CompletionResult]::new($($_ | __zoxide_escapeStringWithSpecialChars), "$($_)", 'ParameterValue', "$($_)")
     }
 }
-{{ end }}
+{{- end }}
 
-
-# xmake completion
-{{ if or (stat `C:\Program Files\xmake\xmake.exe`) (lookPath "xmake") }}
-# PowerShell parameter completion for xmake
-Register-ArgumentCompleter -Native -CommandName xmake -ScriptBlock {
-    param($commandName, $wordToComplete, $cursorPosition)
-    $complete = "$wordToComplete"
-    if (-not $commandName) {
-        $complete = $complete + " "
-    }
-    $oldenv = $env:XMAKE_SKIP_HISTORY
-    $env:XMAKE_SKIP_HISTORY = 1
-    $results = xmake lua "private.utils.complete" $cursorPosition "nospace-json" "$complete" | ConvertFrom-Json | Sort-Object -Property value
-    $results | ForEach-Object {
-        $hasdesc = [bool] $_.psobject.Properties['description']
-        if ($hasdesc) {
-            $desc = " - $($_.description)"
-        } else {
-            $desc = ""
-        }
-        [System.Management.Automation.CompletionResult]::new($_.value, "$($_.value)$desc", 'ParameterValue', $_.value)
-    }
-    $env:XMAKE_SKIP_HISTORY = $oldenv
-}
-
-# PowerShell parameter completion for xrepo
-Register-ArgumentCompleter -Native -CommandName xrepo -ScriptBlock {
-    param($commandName, $wordToComplete, $cursorPosition)
-    $complete = "$wordToComplete"
-    if (-not $commandName) {
-        $complete = $complete + " "
-    }
-    $oldenv = $env:XMAKE_SKIP_HISTORY
-    $env:XMAKE_SKIP_HISTORY = 1
-    $results = xmake lua "private.xrepo.complete" $cursorPosition "nospace-json" "$complete" | ConvertFrom-Json | Sort-Object -Property value
-    $results | ForEach-Object {
-        $hasdesc = [bool] $_.psobject.Properties['description']
-        if ($hasdesc) {
-            $desc = " - $($_.description)"
-        } else {
-            $desc = ""
-        }
-        [System.Management.Automation.CompletionResult]::new($_.value, "$($_.value)$desc", 'ParameterValue', $_.value)
-    }
-    $env:XMAKE_SKIP_HISTORY = $oldenv
-}
-{{ end }}
+{{- if has "fzf" .software_checks }}
+Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+{{- end }}
