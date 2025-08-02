@@ -6,11 +6,9 @@ AppData
 
 {{ if ne .chezmoi.os "linux" }}
 .chezmoiscripts/linux/**
-.chezmoiexternals/linux.yaml.tmpl
 
 dot_bashprofile
 dot_bashrc
-dot_config
 {{- end }}
 
 # Shell configurations
@@ -27,8 +25,14 @@ dot_config/fish
 dot_config/nushell
 AppData/Roaming/nushell
 {{- end }}
+AppData/Roaming/nushell
 
 {{- if not (has "powershell" .shells) }}
 Documents/PowerShell
 Documents/WindowsPowerShell
+{{- end }}
+
+{{- if not (has "startship" .software_checks) }}
+dot_config/starship/*
+dot_config/startship.toml.tmpl
 {{- end }}
