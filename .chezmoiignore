@@ -23,9 +23,7 @@ dot_config/fish
 
 {{- if not (has "nushell" .shells) }}
 dot_config/nushell
-AppData/Roaming/nushell
 {{- end }}
-AppData/Roaming/nushell
 
 {{- if not (has "powershell" .shells) }}
 Documents/PowerShell

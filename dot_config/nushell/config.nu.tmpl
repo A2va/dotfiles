@@ -1,1 +1,60 @@
-{{ template "nushell/config.nu.tmpl" . }}
+$env.path ++= ["~/.local/bin"]
+
+source ($nu.data-dir  | path join 'internal.nu')
+
+# Functions
+
+## Create a new folder and jump inside
+def mk [dirname] {
+    mk $dirname
+    cd $dirname
+}
+
+## Show information about Git identity
+def gitid [] {
+    print "Current identity is"
+    print $"Name: $(git config user.name)"
+    print $"Email: $(git config user.email)"
+}
+
+## Fix incorrect origin
+def fixor [origin?: string] {
+    match $origin {
+        null => {
+            let current_origin = (git remote get-url origin)
+            print $"Current origin is: (ansi red)($current_origin)(ansi reset)"
+            print "No origin provided. Usage: fixor <new-origin-url>"
+        }
+        _ => { 
+            git remote set-url origin $origin
+        }
+    }
+}
+
+# Aliases
+# ls is already good in nushell
+# alias ls = eza
+alias ll = ls -l
+alias la = ls -a
+alias rm = rm -i
+alias mv = mv -i
+
+alias x = xmake
+alias xr = xmake run
+alias xc = xmake clean
+def xmr [] {
+    xmake and xmake run
+}
+
+alias gd = gradle
+alias grr = gradle run
+alias grb = gradle build
+{{- if eq .chezmoi.os "linux" }}
+alias mvw = ./mvnw
+{{ else }}
+alias mvw = ./mvnw.cmd
+{{ end }}
+
+alias ca = cargo
+alias car = cargo run
+alias cab = cargo build -q

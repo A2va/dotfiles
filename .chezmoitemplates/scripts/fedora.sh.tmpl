@@ -24,7 +24,7 @@ sudo dnf install git
 # dependencies for vhs
 sudo dnf install ffmpeg-free
 
-    {{- if not (or (findExecutable "nu" (list "bin" "/usr/bin" ".local/bin")) (lookPath "nu")) }}
+    {{- if not (or (findExecutable "flatpak" (list "bin" "/usr/bin" ".local/bin")) (lookPath "flatpak")) }}
 sudo dnf install flatpak
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
     {{- end }}
