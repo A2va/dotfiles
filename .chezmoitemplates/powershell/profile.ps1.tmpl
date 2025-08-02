@@ -38,6 +38,9 @@ function fixor {
 }
 
 # Aliases
+if (Get-Alias ls -ErrorAction SilentlyContinue) {
+    Remove-Item alias:ls -Force
+}
 Set-Alias -Name ls -Value "eza"
 
 Set-Alias -Name x -Value "xmake"

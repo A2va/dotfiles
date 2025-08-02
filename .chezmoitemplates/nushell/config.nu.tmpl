@@ -12,9 +12,9 @@ def mk [dirname] {
 
 ## Show information about Git identity
 def gitid [] {
-    echo "Current identity is"
-    echo "Name: $(git config user.name)"
-    echo "Email: $(git config user.email)"
+    print "Current identity is"
+    print $"Name: $(git config user.name)"
+    print $"Email: $(git config user.email)"
 }
 
 ## Fix incorrect origin
@@ -22,8 +22,8 @@ def fixor [origin?: string] {
     match $origin {
         null => {
             let current_origin = (git remote get-url origin)
-            echo $"Current origin is: (ansi red)($current_origin)(ansi reset)"
-            echo "No origin provided. Usage: fixor <new-origin-url>"
+            print $"Current origin is: (ansi red)($current_origin)(ansi reset)"
+            print "No origin provided. Usage: fixor <new-origin-url>"
         }
         _ => { 
             git remote set-url origin $origin
