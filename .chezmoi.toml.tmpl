@@ -1,4 +1,25 @@
-{{/* Shell configuration */}}
+{{/* === Desktop Detection === */}}
+
+{{- $isDesktop := false -}}
+
+{{- if eq .chezmoi.os "windows" -}}
+  {{- $editionOut := (output "powershell" "-Command" "(Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion').EditionID") -}}
+  {{- $edition := (trim $editionOut) -}}
+  {{- if or
+        (eq $edition "Professional")
+        (eq $edition "Home")
+        (eq $edition "Core")
+        (eq $edition "Education")
+      -}}
+    {{- $isDesktop = true -}}
+  {{- end -}}
+{{- else if or (ne (env "DISPLAY") "") (ne (env "WAYLAND_DISPLAY") "") (ne (output "which" "xrandr") "") -}}
+  {{- $isDesktop = true -}}
+{{- end -}}
+
+
+{{/* === Shell Selection === */}}
+
 {{- $availableShells := list -}}
 {{- $defaultShells := list -}}
 
@@ -13,20 +34,28 @@
 {{- $shellPrompt := "Which shells do you want to configure? (Uninstalled shells will be installed automatically)" -}}
 {{- $chosenShells := promptMultichoice $shellPrompt $availableShells $defaultShells -}}
 
-{{/* Software package group selection */}}
-{{- $softwareGroupsPrompt := join "\n" (list
+{{/* === 2. Software Group Selection === */}}
+
+{{- $softwareGroupsPromptLines := list
   "Select which groups of software to install:"
   "  base  - Essential tools (Git, Docker)"
   "  dev   - Developer tools (xmake, uv, build tools)"
   "  cli   - CLI productivity tools (zoxide, bat, eza)"
   "  tool  - Extra utilities (typst, Anytype, KeePassXC, vhs)"
-  "  gui   - GUI applications (Anytype, KeePassXC, syncthingtray, VS Code)"
-) -}}
+-}}
+
 {{- $availableGroups := list "base" "dev" "cli" "tool" -}}
+
+{{- if $isDesktop }}
+  {{- $softwareGroupsPromptLines = append $softwareGroupsPromptLines "  gui   - GUI applications (Anytype, KeePassXC, syncthingtray, VS Code)" -}}
+  {{- $availableGroups = append $availableGroups "gui" -}}
+{{- end }}
+
+{{- $softwareGroupsPrompt := join "\n" $softwareGroupsPromptLines -}}
 {{- $defaultGroups := list "base" -}}
 {{- $chosenSoftwareGroups := promptMultichoice $softwareGroupsPrompt $availableGroups $defaultGroups -}}
+{{/* === Software Checks === */}}
 
-{{/* ~~~~~ Software Checks ~~~~~ */}}
 {{- $locationCheck := list -}}
 {{- if eq .chezmoi.os "linux" }}
   {{- $locationCheck = list "bin" "/usr/bin" ".local/bin" -}}
@@ -55,7 +84,6 @@
   {{- $allTools = concat $allTools $tools -}}
 {{- end }}
 
-
 {{- /* A tool is added if it's in a selected group OR if it's already installed. */ -}}
 {{- $softwareChecks := list -}}
 {{- range $tool := $allTools | uniq }}
@@ -70,3 +98,4 @@
 shells = {{ $chosenShells | toToml }}
 software_groups = {{ $chosenSoftwareGroups | toToml }}
 software_checks = {{ $softwareChecks | toToml }}
+is_desktop = {{ $isDesktop | toToml }}
