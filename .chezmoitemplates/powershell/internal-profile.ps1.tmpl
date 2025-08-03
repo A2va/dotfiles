@@ -137,3 +137,7 @@ Register-ArgumentCompleter -Native -CommandName "z" -ScriptBlock {
 {{- if has "fzf" .software_checks }}
 Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
 {{- end }}
+
+{{- if has "rg" .software_checks }}
+Invoke-Expression -Command (& rg --generate=complete-powershell)
+{{- end }}

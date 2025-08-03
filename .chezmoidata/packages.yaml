@@ -10,8 +10,9 @@ packages:
     cli: 
       - rsteube.Carapace
       - Starship.Starship
-      - eza-community.eza
       - ajeetdsouza.zoxide
+      - eza-community.eza
+      - BurntSushi.ripgrep.GNU
       - sharkdp.fd
       - sharkdp.bat
       - junegunn.fzf

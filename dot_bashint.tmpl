@@ -38,3 +38,7 @@ eval "$(zoxide init bash)"
 {{- if has "fzf" .software_checks }}
 fzf --bash | source
 {{- end }}
+
+{{- if has "rg" .software_checks }}
+rg --generate=complete-bash | source
+{{- end }}

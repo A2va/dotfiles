@@ -1,13 +1,14 @@
 # https://github.com/jwnmulder/dotfiles/blob/main/home/.chezmoidata/versions.yaml
 versions:
-  uv: "0.7.17"               # renovate: datasource=github-releases depName=astral-sh/uv
+  uv: "0.8.3"               # renovate: datasource=github-releases depName=astral-sh/uv
   starship: v1.23.0         # renovate: datasource=github-releases depName=starship/starship
-  fzf: v0.64.0              # renovate: datasource=github-releases depName=junegunn/fzf
+  fzf: v0.65.0              # renovate: datasource=github-releases depName=junegunn/fzf
   fd: v10.2.0               # renovate: datasource=github-releases depName=sharkdp/fd
-  eza: v0.22.0             # renovate: datasource=github-releases depName=eza-community/eza
+  eza: v0.23.0             # renovate: datasource=github-releases depName=eza-community/eza
   bat: v0.25.0              # renovate: datasource=github-releases depName=sharkdp/bat
   zoxide: v0.9.8
   carapace: v1.3.3
   typst: v0.13.1
   vhs: v0.10.0
+  ripgrep: 14.1.1
   ttyd: 1.7.7 # dep of vhs

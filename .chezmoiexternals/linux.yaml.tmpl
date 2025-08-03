@@ -73,6 +73,18 @@
   url: https://github.com/sharkdp/bat/releases/download/{{ .versions.bat }}/bat-{{ .versions.bat }}-{{ $unameMachine }}-unknown-linux-gnu.tar.gz
   stripComponents: 1
   path: bat
+
+".local/bin/rg":
+  type: archive-file
+  url: https://github.com/BurntSushi/ripgrep/releases/download/{{ .versions.ripgrep }}/ripgrep-{{ .versions.ripgrep }}-{{- 
+    if eq $unameMachine "x86_64" }}x86_64-unknown-linux-musl
+    {{- else if eq $unameMachine "aarch64" }}aarch64-unknown-linux-gnu
+    {{- else if or (eq $unameMachine "armv7l") (eq $unameMachine "armv6l") }}armv7-unknown-linux-gnueabihf
+    {{- else if eq $unameMachine "i686" }}i686-unknown-linux-gnu
+    {{- else }}unsupported-platform
+  {{- end }}.tar.gz
+  stripComponents: 1
+  path: rg
 {{- end }}
 
 {{- if has "dev" .software_groups }}

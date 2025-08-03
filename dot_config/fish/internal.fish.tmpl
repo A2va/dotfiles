@@ -37,3 +37,7 @@ zoxide init fish | source
 {{- if has "fzf" .software_checks }}
 fzf --fish | source
 {{- end }}
+
+{{- if has "rg" .software_checks }}
+rg --generate=complete-fish | source
+{{- end }}
