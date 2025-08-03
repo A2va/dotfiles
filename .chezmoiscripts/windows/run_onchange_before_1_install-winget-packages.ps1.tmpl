@@ -55,7 +55,6 @@ winget install `
 
 $config = "$env:USERPROFILE\.config\"
 [Environment]::SetEnvironmentVariable("XDG_CONFIG_HOME", $config, [EnvironmentVariableTarget]::User)
-[Environment]::SetEnvironmentVariable("XDG_DATA_HOME", $config, [EnvironmentVariableTarget]::User)
 {{- end }}
 #endregion
 
