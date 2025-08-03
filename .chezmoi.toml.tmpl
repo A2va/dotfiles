@@ -16,13 +16,14 @@
 {{/* Software package group selection */}}
 {{- $softwareGroupsPrompt := join "\n" (list
   "Select which groups of software to install:"
-  "  core  - Essential tools (Git, VS Code)"
+  "  base  - Essential tools (Git, Docker)"
   "  dev   - Developer tools (xmake, uv, build tools)"
   "  cli   - CLI productivity tools (zoxide, bat, eza)"
   "  tool  - Extra utilities (typst, Anytype, KeePassXC, vhs)"
+  "  gui   - GUI applications (Anytype, KeePassXC, syncthingtray, VS Code)"
 ) -}}
-{{- $availableGroups := list "core" "dev" "cli" "tool" -}}
-{{- $defaultGroups := list "core" -}}
+{{- $availableGroups := list "base" "dev" "cli" "tool" -}}
+{{- $defaultGroups := list "base" -}}
 {{- $chosenSoftwareGroups := promptMultichoice $softwareGroupsPrompt $availableGroups $defaultGroups -}}
 
 {{/* ~~~~~ Software Checks ~~~~~ */}}
@@ -36,7 +37,7 @@
 
 {{- $groupTools := dict
       "dev"  (list "xmake" "rustup" "uv")
-      "cli"  (list "carapace" "starship" "zoxide" "fzf")
+      "cli"  (list "carapace" "starship" "zoxide" "fzf" "rg")
 -}}
 {{- $otherTools := (list "uv")}}
 

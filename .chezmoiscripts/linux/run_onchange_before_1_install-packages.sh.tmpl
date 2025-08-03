@@ -6,7 +6,7 @@
 {{ template "scripts/fedora.ps1.tmpl" . }}
 {{ end }}
 
-{{- if has "core" .software_groups }}
+{{- if has "base" .software_groups }}
 # Docker post install steps
 sudo groupadd docker
 sudo usermod -aG docker $USER

@@ -16,7 +16,7 @@ sudo dnf install nushell
 #endregion
 
 #region Software installation
-{{- if has "core" .software_groups }}
+{{- if has "base" .software_groups }}
 sudo dnf install git
 
 sudo dnf -y install dnf-plugins-core
