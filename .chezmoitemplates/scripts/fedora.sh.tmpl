@@ -18,12 +18,20 @@ sudo dnf install nushell
 #region Software installation
 {{- if has "core" .software_groups }}
 sudo dnf install git
+
+sudo dnf -y install dnf-plugins-core
+sudo dnf-3 config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl enable --now docker
 {{- end }}
 
 {{- if has "tool" .software_groups }}
 # dependencies for vhs
 sudo dnf install ffmpeg-free
 
+{{- end }}
+
+{{- if has "gui" .software_groups }}
     {{- if not (or (findExecutable "flatpak" (list "bin" "/usr/bin" ".local/bin")) (lookPath "flatpak")) }}
 sudo dnf install flatpak
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo

@@ -1,5 +1,17 @@
 #! /bin/bash
 
+{{- if eq .chezmoi.osRelease.idLike "debian" }}
+{{ template "scripts/debian.ps1.tmpl" . }}
+{{ else if eq .chezmoi.osRelease.id "fedora" }}
+{{ template "scripts/fedora.ps1.tmpl" . }}
+{{ end }}
+
+{{- if has "core" .software_groups }}
+# Docker post install steps
+sudo groupadd docker
+sudo usermod -aG docker $USER
+{{- end }}
+
 {{- if has "dev" .software_groups }}
     {{- if not (or (findExecutable "xmake" (list "bin" "/usr/bin" ".local/bin")) (lookPath "xmake")) }}
 curl -fsSL https://xmake.io/shget.text | bash
@@ -10,16 +22,24 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     {{- end }}
 {{- end }}
 
-{{- if eq .chezmoi.osRelease.idLike "debian" }}
-{{ template "scripts/debian.ps1.tmpl" . }}
-{{ else if eq .chezmoi.osRelease.id "fedora" }}
-{{ template "scripts/fedora.ps1.tmpl" . }}
-{{ end }}
 
-{{- if has "tool" .software_groups }}
-flatpak install -y --user flathub io.anytype.anytype
-flatpak install -y --user flathub org.keepassxc.KeePassXC
-flatpak install -y --user flathub io.github.martchus.syncthingtray
+{{- $flatpak_packages := list -}}
+{{- range .software_groups }}
+  {{- $groupPackages := index $.packages.flatpak . -}}
+  {{- if $groupPackages }}
+    {{- $flatpak_packages = concat $flatpak_packages $groupPackages -}}
+  {{- end }}
+{{- end }}
+
+{{ $flatpak_list := (output "bash" "flatpak list --columns=application | tail -n +2") -}}
+{{ range $flatpak_packages -}}
+{{   if not (contains . $flatpak_list) -}}
+flatpak install -y --user flathub {{ . }}
+{{   end -}}
+{{- end -}}
+
+
+{{- if has "io.github.martchus.syncthingtray" $flatpak_packages }}
 # https://github.com/flathub/io.github.martchus.syncthingtray/blob/master/README.md#known-flatpak-related-issues
 mkdir -p $HOME/.config/autostart
 ln -sf $HOME/.local/share/flatpak/app/io.github.martchus.syncthingtray/current/active/export/share/applications/io.github.martchus.syncthingtray.desktop $HOME/.config/autostart/
