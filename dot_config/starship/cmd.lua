@@ -24,12 +24,12 @@ local known = {
     universal = "univ",
 }
 
--- Splits camelCase / snake_case / kebab-case / dotted.case into segments
+-- splits camelCase / snake_case / kebab-case / dotted.case into segments
 function split_segments(s)
     local segments = {}
     local pos = 1
     while pos <= #s do
-        local c = s:sub(pos,pos)
+        local c = s:sub(pos, pos)
         if c:match("[%w]") then
             local word = s:match("^[%u]?[%l%d]+", pos) or s:match("^%d+", pos)
             table.insert(segments, word)
@@ -43,7 +43,7 @@ function split_segments(s)
     return segments
 end
 
--- Smart fallback abbreviation
+-- smart fallback abbreviation
 function abbreviate_word(w)
     w = w:lower()
     if known[w] then
@@ -55,7 +55,7 @@ function abbreviate_word(w)
     return (first .. rest):sub(1, 4)
 end
 
--- Abbreviate all words, keep separators
+-- abbreviate all words, keep separators
 function shorten_option(name)
     local segments = split_segments(name)
     for i, seg in ipairs(segments) do
