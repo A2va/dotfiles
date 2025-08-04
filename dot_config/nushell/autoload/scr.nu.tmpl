@@ -76,16 +76,14 @@ def --env scr [
             "# Markdown Scratch File" | save --force $entry
         }
         "c" => {
-            mkdir $project_name
+            xmake create -l c $project_name
             cd $project_name
-            $entry = "main.c"
-            '{{ template "scr/main.c.tmpl" . }}' | save --force $entry
+            $entry = "src/main.c"
         }
         "cpp" => {
-            mkdir $project_name
+            xmake create -l c++ $project_name
             cd $project_name
-            $entry = "main.cpp"
-            '{{ template "scr/main.cpp.tmpl" . }}' | save --force $entry
+            $entry = "src/main.cpp"
         }
         "java" => {
             mkdir $project_name

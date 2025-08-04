@@ -86,16 +86,14 @@ function scr {
             Save-File "# Markdown Scratch File" $entry
         }
         "c" {
-            New-Item -ItemType Directory -Name $ProjectName | Out-Null
+            xmake create -l c $ProjectName
             Set-Location $ProjectName
-            $entry = "main.c"
-            Save-File '{{ template "scr/main.c.tmpl" . }}' $entry
+            $entry = "src/main.c"
         }
         "cpp" {
-            New-Item -ItemType Directory -Name $ProjectName | Out-Null
+            xmake create -l c++ $ProjectName
             Set-Location $ProjectName
-            $entry = "main.cpp"
-            Save-File '{{ template "scr/main.cpp.tmpl" . }}' $entry
+            $entry = "src/main.cpp"
         }
         "java" {
             New-Item -ItemType Directory -Name $ProjectName | Out-Null

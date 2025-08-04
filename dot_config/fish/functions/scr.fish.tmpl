@@ -94,13 +94,21 @@ function scr
             touch "$name.md"
             set entry "$name.md"
         case c
-            mkdir $name && cd $name
-            save_file """{{ template "scr/main.c.tmpl" . }}""" main.c
-            set entry main.c
+            # mkdir $name && cd $name
+            # save_file """{{ template "scr/main.c.tmpl" . }}""" main.c
+            # set entry "main.c"
+
+            xmake create -l c "$name"
+            cd $name
+            set entry src/main.c
         case cpp
-            mkdir $name && cd $name
-            save_file """{{ template "scr/main.cpp.tmpl" . }}""" main.cpp
-            set entry main.cpp
+            # mkdir $name && cd $name
+            # save_file """{{ template "scr/main.cpp.tmpl" . }}""" main.cpp
+            # set entry main.cpp
+
+            xmake create -l c++"$name"
+            cd $name
+            set entry src/main.cpp
         case java
             mkdir $name && cd $name
             set entry App.java
