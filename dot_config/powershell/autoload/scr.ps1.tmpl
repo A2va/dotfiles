@@ -4,7 +4,7 @@ function scr {
         [string]$Name
     )
 
-    $VERSION = "v7"
+    $VERSION = "v9"
     $SCR_SUPPORTED = @("rust", "c", "cpp", "java", "gradle", "python", "scala", "md")
     $JAVA_VERSION = 21
 
@@ -50,13 +50,13 @@ function scr {
         return
     }
 
-    $UseCustomName = $false
+    $BaseFolder = $Env:SCR_TMP_FOLDER
     if ($Name) {
         if (Test-Path $Name) {
             Show-Color red "Path '$Name' already exists. Aborting to prevent overwrite."
             return
         } else {
-            $UseCustomName = $true
+            $BaseFolder = Get-Location
             $ProjectName = $Name
         }
     } else {
@@ -64,52 +64,49 @@ function scr {
         $ProjectName = "scratch-$Language-$timestamp"
     }
 
-    if (-not $UseCustomName) {
-        if (-not (Test-Path $Env:SCR_TMP_FOLDER)) {
-            Create-Directory -Path $Env:SCR_TMP_FOLDER -ErrorAction Stop
-        }
-        Set-Location $Env:SCR_TMP_FOLDER
-    }
-
     Show-Color blue "Creating scratch project for '$Language' in folder '$ProjectName'..."
-
+    $Final = Join-Path -Path $BaseFolder -ChildPath $ProjectName
     $entry = ""
 
     switch ($Language) {
         "rust" {
-            cargo new $ProjectName
-            Set-Location $ProjectName
+            New-Item -ItemType Directory -Name $Final | Out-Null
+            Set-Location $Final
+            cargo init --vcs none
             $entry = "src/main.rs"
         }
         "md" {
+            Set-Location $BaseFolder
             $entry = "$ProjectName.md"
             Save-File "# Markdown Scratch File" $entry
         }
         "c" {
-            xmake create -l c $ProjectName
-            Set-Location $ProjectName
+            New-Item -ItemType Directory -Name $Final | Out-Null
+            Set-Location $Final
+            xmake create -l c -P .
             $entry = "src/main.c"
         }
         "cpp" {
-            xmake create -l c++ $ProjectName
-            Set-Location $ProjectName
+            New-Item -ItemType Directory -Name $Final | Out-Null
+            Set-Location $Final
+            xmake create -l c++ -P .
             $entry = "src/main.cpp"
         }
         "java" {
-            New-Item -ItemType Directory -Name $ProjectName | Out-Null
-            Set-Location $ProjectName
+            New-Item -ItemType Directory -Name $Final | Out-Null
+            Set-Location $Final
             $entry = "App.java"
             Save-File '{{ template "scr/App.java.tmpl" . }}' $entry
         }
         "python" {
-            New-Item -ItemType Directory -Name $ProjectName | Out-Null
-            Set-Location $ProjectName
+            New-Item -ItemType Directory -Name $Final | Out-Null
+            Set-Location $Final
             $entry = "main.py"
             Save-File '{{ template "scr/main.py.tmpl" . }}' $entry
         }
         "gradle" {
-            New-Item -ItemType Directory -Name $ProjectName | Out-Null
-            Set-Location $ProjectName
+            New-Item -ItemType Directory -Name $Final | Out-Null
+            Set-Location $Final
             & gradle init `
                 --type java-application `
                 --dsl kotlin `
@@ -122,8 +119,8 @@ function scr {
             $entry = "app/src/main/java/scratch/App.java"
         }
         "scala" {
-            New-Item -ItemType Directory -Name $ProjectName | Out-Null
-            Set-Location $ProjectName
+            New-Item -ItemType Directory -Name $Final | Out-Null
+            Set-Location $Final
             $entry = "Main.scala"
             Save-File '{{ template "scr/Main.scala.tmpl" . }}' $entry
             Save-File '{{ template "scr/scalafmt.conf.tmpl" . }}' ".scalafmt.conf"

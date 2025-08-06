@@ -21,7 +21,7 @@
 # TODO: do we want to add a way to name the scratch folder and put it in current folder instead of the SCR_TMP_FOLDER ?
 
 # TODO: scr sbt # Create a Scala project with SBT
-set VERSION v7
+set VERSION v9
 set SCR_SUPPORTED rust c cpp java gradle python scala md
 
 function scr
@@ -65,62 +65,53 @@ function scr
         return
     end
 
+    set base_folder $SCR_TMP_FOLDER
+
     # Define the final folder name
     set -g name scratch-$lang-(date -u +%Y-%m-%d-%H%M%S)
-    set custom_name 0
     if test (count $argv) -gt 1
         if test -f $argv[2]
             color red "Path $argv[2] already exists, stopped to avoid erasing existing files for this $lang option."
             return
         else
-            set custom_name 1
             set -g name $argv[2]
+            set base_folder $PWD # Take the current folder as base if a custom name has been given
         end
-    end
-
-    # Move to parent folder
-    if test $custom_name -eq 0
-        cd $SCR_TMP_FOLDER
     end
 
     # Create scratch project for each option
     color blue "Creating scratch project for $lang inside $name"
+    set final $base_folder/$name
+
     switch $lang
         case rust
-            cargo new "$name"
-            cd $name
+            mkdir -p $final && cd $final
+            cargo init --vcs none
             set entry src/main.rs
         case md
+            cd $base_folder
             touch "$name.md"
             set entry "$name.md"
         case c
-            # mkdir $name && cd $name
-            # save_file """{{ template "scr/main.c.tmpl" . }}""" main.c
-            # set entry "main.c"
-
-            xmake create -l c "$name"
-            cd $name
+            mkdir -p $final && cd $final
+            xmake create -l c -P .
             set entry src/main.c
         case cpp
-            # mkdir $name && cd $name
-            # save_file """{{ template "scr/main.cpp.tmpl" . }}""" main.cpp
-            # set entry main.cpp
-
-            xmake create -l c++"$name"
-            cd $name
+            mkdir -p $final && cd $final
+            xmake create -l c++ -P .
             set entry src/main.cpp
         case java
-            mkdir $name && cd $name
+            mkdir -p $final && cd $final
             set entry App.java
             save_file """{{ template "scr/App.java.tmpl" . }}""" App.java
         case python
-            mkdir $name && cd $name
+            mkdir -p $final && cd $final
             save_file """{{ template "scr/main.py.tmpl" . }}""" main.py
             set entry main.py
             # Java with Gradle
         case gradle
             # https://docs.gradle.org/current/userguide/build_init_plugin.html
-            mkdir $name && cd $name
+            mkdir -p $final && cd $final
             gradle init \
                 # Setup a Java application
                 --type java-application \
@@ -140,7 +131,7 @@ function scr
             set entry app/src/main/java/scratch/App.java
 
         case scala
-            mkdir $name && cd $name
+            mkdir -p $final && cd $final
             set entry Main.scala
             save_file """{{ template "scr/Main.scala.tmpl" . }}""" Main.scala
             save_file """{{ template "scr/scalafmt.conf.tmpl" . }}""" .scalafmt.conf

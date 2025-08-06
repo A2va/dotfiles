@@ -1,18 +1,22 @@
 
-def show_color [color: string, msg: string] {
-    let colors = {
-        red: "\e[31m"
-        blue: "\e[36m"
-    }
-    let reset = "\e[0m"
-    print $"($colors | get $color)($msg)($reset)"
+module utils {
+    export def show_color [color: string, msg: string] {
+		let colors = {
+			red: "\e[31m"
+			blue: "\e[36m"
+		}
+		let reset = "\e[0m"
+		print $"($colors | get $color)($msg)($reset)"
+	}
 }
+use utils *
 
 def --env scr [
   language?: string,
   name?: string
 ] {
-    let version = "v7"
+
+    let version = "v9"
     let supported = [rust c cpp java gradle python scala md]
     let java_version = 21
 
@@ -30,8 +34,7 @@ def --env scr [
     }
 
     if ($language | is-empty) {
-        print "Choose a language:"
-        $language = $supported | input list "Select Language:"
+        $language = $supported | input list "Select Language"
         if ($language | is-empty) { 
             return 
         }
@@ -42,64 +45,57 @@ def --env scr [
         return
     }
 
+    let base_folder = $env.SCR_TMP_FOLDER
+
     mut project_name = $name
-    let use_custom_name = if ($name | is-empty) == false {
+    if ($name | is-empty) == false {
         if (ls $name | is-empty) == false {
             show_color red $"Path '($name)' already exists. Aborting to prevent overwrite."
             return
         }
-        true
     } else {
         let timestamp = (date now | format date "%Y-%m-%d-%H%M%S")
         let name_gen = $"scratch-($language)-($timestamp)"
         $project_name = $name_gen
-        false
-    }
-
-    if not $use_custom_name {
-        mkdir $env.SCR_TMP_FOLDER
-        cd $env.SCR_TMP_FOLDER
     }
 
     show_color blue $"Creating scratch project for '($language)' in folder '($project_name)'..."
-
+    let final = $base_folder | path join $project_name
     mut entry = ""
 
     match $language {
         "rust" => {
-            ^cargo new $project_name
-            cd $project_name
+            mkdir $final and cd $final
+            ^cargo init --vcs none
             $entry = "src/main.rs"
         }
         "md" => {
+            cd $base_folder
             $entry = $"($project_name).md"
-            "# Markdown Scratch File" | save --force $entry
+            touch $entry
         }
         "c" => {
-            xmake create -l c $project_name
-            cd $project_name
+            mkdir $final and cd $final
+            xmake create -l c -P .
             $entry = "src/main.c"
         }
         "cpp" => {
-            xmake create -l c++ $project_name
-            cd $project_name
+            mkdir $final and cd $final
+            xmake create -l c++ -P .
             $entry = "src/main.cpp"
         }
         "java" => {
-            mkdir $project_name
-            cd $project_name
+            mkdir $final and cd $final
             $entry = "App.java"
             '{{ template "scr/App.java.tmpl" . }}' | save --force $entry
         }
         "python" => {
-            mkdir $project_name
-            cd $project_name
+            mkdir $final and cd $final
             $entry = "main.py"
             '{{ template "scr/main.py.tmpl" . }}' | save --force $entry
         }
         "gradle" => {
-            mkdir $project_name
-            cd $project_name
+            mkdir $final and cd $final
             (
                 ^gradle init
                 --type java-application
@@ -114,8 +110,7 @@ def --env scr [
             $entry = "app/src/main/java/scratch/App.java"
         }
         "scala" => {
-            mkdir $project_name
-            cd $project_name
+            mkdir $final and cd $final
             $entry = "Main.scala"
             '{{ template "scr/Main.scala.tmpl" . }}' | save --force $entry
             '{{ template "scr/scalafmt.conf.tmpl" . }}' | save --force ".scalafmt.conf"
