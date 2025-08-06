@@ -34,7 +34,10 @@ sudo dnf install ffmpeg-free
 {{- if has "gui" .software_groups }}
     {{- if not (or (findExecutable "flatpak" (list "bin" "/usr/bin" ".local/bin")) (lookPath "flatpak")) }}
 sudo dnf install flatpak
+flatpak remote-delete fedora --force || true
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+sudo flatpak repair
+flatpak update
     {{- end }}
 {{- end }}
 #endregion
