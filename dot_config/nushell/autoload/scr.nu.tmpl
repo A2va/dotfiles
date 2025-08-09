@@ -1,35 +1,45 @@
 
 module utils {
-    export def show_color [color: string, msg: string] {
-		let colors = {
-			red: "\e[31m"
-			blue: "\e[36m"
-		}
-		let reset = "\e[0m"
-		print $"($colors | get $color)($msg)($reset)"
-	}
+    export const VERSION = "v9"
+
+    export def color_print [color: string, msg: string] {
+        print ($"(ansi $color)($msg)(ansi reset)")
+    }
 }
 use utils *
 
+# scr v9 - Generate scratch project in various languages based on simple templates or generators
+# Configure scr with SCR_TMP_FOLDER and SCR_EDITOR
+#  `$env.SCR_TMP_FOLDER = ~/path/somewhere`
+#  `$env.SCR_EDITOR = "code . and code "`
+# Pick the given template
+#   `scr rust`     - Create a new Cargo project
+#   `scr c`        - Hello World in C
+#   `scr cpp`      - Hello World in C++
+#   `scr pco`      - PCO program using pcosynchro
+#   `scr python`   - Hello World in Python
+#   `scr java`     - Hello World in App.java
+#   `scr gradle`   - Java Gradle project (gradle init)
+#   `scr scala`    - Hello World in Main.scala
 def --env scr [
   language?: string,
   name?: string
+  --version(-v)            # Show version
 ] {
 
-    let version = "v9"
     let supported = [rust c cpp java gradle python scala md]
     let java_version = 21
 
     mut language = $language
 
-    if $language == "-v" {
-        print $"Nushell script ($version) installed."
+    if $version {
+        print $"Nushell script ($VERSION) installed."
         return
     }
 
     if 'SCR_TMP_FOLDER' not-in $env  {
-        show_color red "Error: You must define SCR_TMP_FOLDER as a valid directory."
-        show_color blue 'Example: $env.SCR_TMP_FOLDER = "/tmp/scratch_projects"'
+        color_print red "Error: You must define SCR_TMP_FOLDER as a valid directory."
+        color_print blue 'Example: $env.SCR_TMP_FOLDER = "/tmp/scratch_projects"'
         return
     }
 
@@ -41,7 +51,7 @@ def --env scr [
     }
 
     if not ($language in $supported) {
-        show_color red $"Error: '($language)' is not supported. Choose one of: ($supported | str join ', ')"
+        color_print red $"Error: '($language)' is not supported. Choose one of: ($supported | str join ', ')"
         return
     }
 
@@ -50,7 +60,7 @@ def --env scr [
     mut project_name = $name
     if ($name | is-empty) == false {
         if (ls $name | is-empty) == false {
-            show_color red $"Path '($name)' already exists. Aborting to prevent overwrite."
+            color_print red $"Path '($name)' already exists. Aborting to prevent overwrite."
             return
         }
     } else {
@@ -59,13 +69,13 @@ def --env scr [
         $project_name = $name_gen
     }
 
-    show_color blue $"Creating scratch project for '($language)' in folder '($project_name)'..."
-    let final = $base_folder | path join $project_name
+    color_print blue $"Creating scratch project for '($language)' in folder '($project_name)'..."
+    let final = $"($project_name)/($project_name)"
     mut entry = ""
 
     match $language {
         "rust" => {
-            mkdir $final and cd $final
+            mkdir $final; cd $final
             ^cargo init --vcs none
             $entry = "src/main.rs"
         }
@@ -75,22 +85,22 @@ def --env scr [
             touch $entry
         }
         "c" => {
-            mkdir $final and cd $final
+            mkdir $final; cd $final
             xmake create -l c -P .
             $entry = "src/main.c"
         }
         "cpp" => {
-            mkdir $final and cd $final
+            mkdir $final; cd $final
             xmake create -l c++ -P .
             $entry = "src/main.cpp"
         }
         "java" => {
-            mkdir $final and cd $final
+            mkdir $final; cd $final
             $entry = "App.java"
             '{{ template "scr/App.java.tmpl" . }}' | save --force $entry
         }
         "python" => {
-            mkdir $final and cd $final
+            mkdir $final; cd $final
             $entry = "main.py"
             '{{ template "scr/main.py.tmpl" . }}' | save --force $entry
         }
@@ -110,7 +120,7 @@ def --env scr [
             $entry = "app/src/main/java/scratch/App.java"
         }
         "scala" => {
-            mkdir $final and cd $final
+            mkdir $final; cd $final
             $entry = "Main.scala"
             '{{ template "scr/Main.scala.tmpl" . }}' | save --force $entry
             '{{ template "scr/scalafmt.conf.tmpl" . }}' | save --force ".scalafmt.conf"
@@ -118,8 +128,8 @@ def --env scr [
     }
 
     if 'SCR_EDITOR' not-in $env  {
-        show_color red "Scratch project created, but SCR_EDITOR is not set."
-        show_color blue 'Example: $env.SCR_EDITOR = "code .; code"'
+        color_print red "Scratch project created, but SCR_EDITOR is not set."
+        color_print blue 'Example: $env.SCR_EDITOR = "code"'
     } else {
         ^($env.SCR_EDITOR) $entry
     }

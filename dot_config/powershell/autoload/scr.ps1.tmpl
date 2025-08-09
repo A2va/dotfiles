@@ -1,25 +1,84 @@
 function scr {
     param (
         [string]$Language,
-        [string]$Name
+        [string]$Name,
+        [Alias('v')]
+        [switch]$Version,
+
+        [Alias('h', 'help')]
+        [switch]$ShowHelp
     )
 
-    $VERSION = "v9"
+    $scriptVersion = "v9"
+    $DEFINITION = "scr $scriptVersion - Generate scratch project in various languages based on simple templates or generators"
     $SCR_SUPPORTED = @("rust", "c", "cpp", "java", "gradle", "python", "scala", "md")
     $JAVA_VERSION = 21
 
-    function Show-Color {
-        param (
-            [string]$Color,
-            [string]$Message
-        )
-        $colorMap = @{
-            red = "DarkRed"
-            blue = "Cyan"
-        }
-        Write-Host $Message -ForegroundColor ($colorMap[$Color])
+    function Show-Version {
+        Write-Host "PowerShell script $scriptVersion installed."
     }
 
+    function Show-Help {
+        Write-Host "`n$DEFINITION" -ForegroundColor Cyan
+        Write-Host "Synopsis: scr [-v|-h|--help] [template name] [destination]" -ForegroundColor Blue
+        Write-Host "Configure scr with SCR_TMP_FOLDER and SCR_EDITOR" -ForegroundColor Green
+        Write-Host
+        Write-Host "Configure scr with SCR_TMP_FOLDER and SCR_EDITOR"
+        Show-PowerShellCommand "$env:SCR_TMP_FOLDER = ~/path/somewhere # choose a folder where the scratch projects will be generated"
+        Show-PowerShellCommand "$env:SCR_TMP_FOLDER . # SCR_TMP_FOLDER can the the current folder if you like it"
+        Show-PowerShellCommand "$env:SCR_EDITOR = \"nvim\" # configure the editor to open the main file"
+        Show-PowerShellCommand "$env:SCR_EDITOR = \"code . && code\" # Same with VSCode: it opens the folder in VSCode and open the main file"
+        Show-PowerShellCommand "$env:SCR_EDITOR = $EDITOR # reusing the $EDITOR value"
+        Write-Host
+        Write-Host "Pick the given template" -ForegroundColor Green
+        Show-PowerShellCommand "scr rust # Create a new cargo project"
+        Show-PowerShellCommand "scr c # Create a hello world in main.c"
+        Show-PowerShellCommand "scr cpp # Create a hello world in main.cpp"
+        Show-PowerShellCommand "scr python # Create a simple hello world main.py"
+        Show-PowerShellCommand "scr java # Create a single App.java with hello world"
+        Show-PowerShellCommand "scr gradle # Create a Java project using Gradle (gradle init)"
+        Show-PowerShellCommand "scr scala # Create a single Main.scala with hello world"
+    }
+
+    function Show-PowerShellCommand {
+        param(
+            [Parameter(Mandatory)]
+            [string]$Command
+        )
+
+        # ANSI color codes
+        $ColorCmdlet = "`e[96m" # bright cyan
+        $ColorParam = "`e[93m" # yellow
+        $ColorString = "`e[92m" # green
+        $ColorVar = "`e[95m" # magenta
+        $ColorNumber = "`e[94m" # blue
+        $ColorComment = "`e[90m" # grey
+        $Reset = "`e[0m"
+
+        # Separate code and comment
+        $parts = $Command -split '#', 2
+        $code = $parts[0]
+        $comment = if ($parts.Count -gt 1) { $parts[1] } else { $null }
+
+        # Highlight: basic regex-based replacements
+        $highlighted = $code `
+            -replace '(\b[A-Za-z]+\-[A-Za-z]+\b)', "$ColorCmdlet`$1$Reset" `        # Cmdlets
+        -replace '(\s-\w+)', "$ColorParam`$1$Reset" `                          # Parameters
+        -replace '("[^"]*"|''[^'']*'')', "$ColorString`$1$Reset" `             # Strings
+        -replace '(\$[A-Za-z_]\w*)', "$ColorVar`$1$Reset" `                     # Variables
+        -replace '(\b\d+(\.\d+)?\b)', "$ColorNumber`$1$Reset"                   # Numbers
+
+        # Print highlighted code
+        Write-Host -NoNewline $highlighted
+
+        # Print comment if present
+        if ($comment) {
+            Write-Host "$ColorComment# $comment$Reset"
+        }
+        else {
+            Write-Host ""
+        }
+    }
     function Save-File {
         param (
             [string]$Content,
@@ -28,14 +87,21 @@ function scr {
         Set-Content -Path $Path -Value $Content -Encoding UTF8
     }
 
-    if ($Language -eq "-v") {
-        Write-Host "PowerShell script $VERSION installed."
+    $lowerArgs = $Args | ForEach-Object { $_.ToLower() }
+    if ($ShowHelp.IsPresent -or $lowerArgs.Contains('--help')) {
+        Show-Help
+        return
+    }
+        
+    if ($Version.IsPresent -or $lowerArgs.Contains('--version')) {
+        Show-Version
         return
     }
 
+
     if (-not $Env:SCR_TMP_FOLDER) {
-        Show-Color red "Error: You must define SCR_TMP_FOLDER as a valid directory."
-        Show-Color blue 'Example: $Env:SCR_TMP_FOLDER = "C:\scratch_projects"'
+        Write-Host "Error: You must define SCR_TMP_FOLDER as a valid directory." -ForegroundColor Red
+        Write-Host 'Example: $Env:SCR_TMP_FOLDER = "C:\scratch_projects"' -ForegroundColor Cyan
         return
     }
 
@@ -46,25 +112,27 @@ function scr {
     }
 
     if (-not ($SCR_SUPPORTED -contains $Language)) {
-        Show-Color red "Error: '$Language' is not supported. Choose one of: $($SCR_SUPPORTED -join ', ')"
+        Write-Host "Error: '$Language' is not supported. Choose one of: $($SCR_SUPPORTED -join ', ')" -ForegroundColor Red
         return
     }
 
     $BaseFolder = $Env:SCR_TMP_FOLDER
     if ($Name) {
         if (Test-Path $Name) {
-            Show-Color red "Path '$Name' already exists. Aborting to prevent overwrite."
+            Write-Host "Path '$Name' already exists. Aborting to prevent overwrite." -ForegroundColor
             return
-        } else {
+        }
+        else {
             $BaseFolder = Get-Location
             $ProjectName = $Name
         }
-    } else {
+    }
+    else {
         $timestamp = Get-Date -Format "yyyy-MM-dd-HHmmss"
         $ProjectName = "scratch-$Language-$timestamp"
     }
 
-    Show-Color blue "Creating scratch project for '$Language' in folder '$ProjectName'..."
+    Write-Host "Creating scratch project for '$Language' in folder '$ProjectName'..." -ForegroundColor Cyan
     $Final = Join-Path -Path $BaseFolder -ChildPath $ProjectName
     $entry = ""
 
@@ -128,9 +196,10 @@ function scr {
     }
 
     if (-not $Env:SCR_EDITOR) {
-        Show-Color red "Scratch project created, but SCR_EDITOR is not set."
-        Show-Color blue 'Example: $Env:SCR_EDITOR = "code .; code"'
-    } else {
+        Write-Host "Scratch project created, but SCR_EDITOR is not set." -ForegroundColor
+        Write-Host 'Example: $Env:SCR_EDITOR = "code .; code"' -ForegroundColor Cyan
+    }
+    else {
         Invoke-Expression "$Env:SCR_EDITOR $entry"
     }
 }
