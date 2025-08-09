@@ -17,7 +17,7 @@ if ($env:Path -notlike "*\.local\bin*") {
 rustup completions powershell | Out-String | Invoke-Expression
 {{- end }}
 
-{{ if has "xmake" .software_checks  }}
+{{- if has "xmake" .software_checks }}
 # xmake completion
 # PowerShell parameter completion for xmake
 Register-ArgumentCompleter -Native -CommandName xmake -ScriptBlock {
@@ -136,8 +136,11 @@ Register-ArgumentCompleter -Native -CommandName "z" -ScriptBlock {
 
 {{- if has "fzf" .software_checks }}
 Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+if (Get-Alias r -ErrorAction SilentlyContinue) {
+    Remove-Item Alias:r
+}
 {{- end }}
 
 {{- if has "rg" .software_checks }}
-Invoke-Expression -Command (& rg --generate=complete-powershell)
+Invoke-Expression -Command ((& rg --generate=complete-powershell) -join "`n")
 {{- end }}
