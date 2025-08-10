@@ -105,8 +105,7 @@ def r [
 
             match $ext {
                 'rs' => { cmd: $"rustc ($file) -o build/($base) and build/($base)", watch_exts: ['rs'] }
-                # 'cpp' => { cmd: $"g++ -std=c++2a -o build/($base) ($file) and ./build/($base)", watch_exts: ['cpp', 'h' 'hpp'] }
-                # 'c' => { cmd: $"gcc -o build/($base) ($file) and ./build/($base)", watch_exts: ['c', 'h'] }
+                {{- if eq .chezmoi.os "windows" }}
                 'cpp' => {
                     let script = do $cl_compile_script $file $base "/std:c++latest"
                     # Build here because inlining the ps cmd with nu is not possible
@@ -119,6 +118,10 @@ def r [
                     powershell -NoProfile -Command $script
                     {cmd: $"./build/($base)", watch_exts: ['c', 'h'], ps_cl_cmd: $script}
                 }
+                {{- else }}
+                'cpp' => { cmd: $"g++ -std=c++2a -o build/($base) ($file) and ./build/($base)", watch_exts: ['cpp', 'h' 'hpp'] }
+                'c' => { cmd: $"gcc -o build/($base) ($file) and ./build/($base)", watch_exts: ['c', 'h'] }
+                {{- end }}
                 'java' => {
                     let javac = (which javac | get 0.name)
                     let java = (which java | get 0.name)
@@ -135,7 +138,7 @@ def r [
                 'typ' => { cmd: $"typst compile ($file)", watch_cmd: $"typst watch ($file)", watch_exts: ['typ'] }
                 _ => {
                     let first_line = (open --raw $file | lines | get 0?)
-                    if ($first_line != null) and ($first_line | str starts-with "#!") {
+                    if ($nu.os-info.name == "linux") and ($first_line != null) and ($first_line | str starts-with "#!") {
                         chmod +x $file
                     }
 
@@ -145,10 +148,10 @@ def r [
 
                     # On linux we can check the executable flag
                     let c  = if ($nu.os-info.name == "linux") and ($file | path exists) and (ls $file | get 0.mode | str contains 'x')  {
-                        do $format_file
+                        do $format_file $file
                     } else if($nu.os-info.name == "windows") {
                         # it will error if that that's not an exe
-                        do $format_file
+                        do $format_file $file
                     }
                     {cmd: $c}
                 }

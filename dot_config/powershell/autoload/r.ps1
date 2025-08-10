@@ -29,11 +29,20 @@ function r {
         Show-PowerShellCommand "r program.cpp # Run a C++, Rust, Java, Haskell, Python, Sage, Fish, Bash, or GMPL program with their compiler/interpreter"
         Show-PowerShellCommand "r somebin # If 'somefile' has a shebang or is an executable file, just run it"
         Show-PowerShellCommand "r App.kt # Run a main Kotlin class"
+        
         Write-Host
         Write-Host "Guess the associated build tool depending on the context" -ForegroundColor Green
-        
+        Show-PowerShellCommand "r # Found a Cargo.toml ? cargo run. Found a pom.xml ? use mvr.fish (maven run)"
+        Show-PowerShellCommand "r # Found a CMakeLists.txt ? use cmake + cmr. A Makefile present, but no target/ or build/ ? run 'cmr .'"
+        Show-PowerShellCommand "r # Found a settings.gradle.kts/settings.gradle ? gradle run."
 
-        Write-Host "`nSupported: C, C++, Rust, Python, Java, Kotlin, Scala, Haskell, Typst, etc."
+        Write-Host "Auto detect default files and run them" -ForegroundColor Green
+        Show-PowerShellCommand "r # Found a main.cpp, main.c, App.java/Main.java (without Gradle or Maven files), compile and run them"
+        Show-PowerShellCommand "r # Found a main.py -> use the python interpreter"
+
+        Write-Host
+        Write-Host "Enable debug mode via R_DEBUG variable to see what is planned to be run" -ForegroundColor Green
+        Show-PowerShellCommand '$env:R_DEBUG=on; r # dump command for standard run'
     }
 
     function Show-Version {
@@ -62,11 +71,11 @@ function r {
 
         # Highlight: basic regex-based replacements
         $highlighted = $code `
-            -replace '(\b[A-Za-z]+\-[A-Za-z]+\b)', "$ColorCmdlet`$1$Reset" `        # Cmdlets
-        -replace '(\s-\w+)', "$ColorParam`$1$Reset" `                          # Parameters
-        -replace '("[^"]*"|''[^'']*'')', "$ColorString`$1$Reset" `             # Strings
-        -replace '(\$[A-Za-z_]\w*)', "$ColorVar`$1$Reset" `                     # Variables
-        -replace '(\b\d+(\.\d+)?\b)', "$ColorNumber`$1$Reset"                   # Numbers
+			-replace '(\b[A-Za-z]+\-[A-Za-z]+\b)', "$ColorCmdlet`$1$Reset" ` # Cmdlets
+			-replace '(\s-\w+)', "$ColorParam`$1$Reset" `   # Parameters
+			-replace '("[^"]*"|''[^'']*'')', "$ColorString`$1$Reset" ` # Strings
+			-replace '(\$[A-Za-z_]\w*)', "$ColorVar`$1$Reset" ` # Variables
+			-replace '(\b\d+(\.\d+)?\b)', "$ColorNumber`$1$Reset" # Numbers
 
         # Print highlighted code
         Write-Host -NoNewline $highlighted

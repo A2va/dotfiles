@@ -2,11 +2,12 @@ function scr {
     param (
         [string]$Language,
         [string]$Name,
+
         [Alias('v')]
         [switch]$Version,
 
         [Alias('h', 'help')]
-        [switch]$ShowHelp
+        [switch]$ShowHelp,
     )
 
     $scriptVersion = "v9"
@@ -24,11 +25,11 @@ function scr {
         Write-Host "Configure scr with SCR_TMP_FOLDER and SCR_EDITOR" -ForegroundColor Green
         Write-Host
         Write-Host "Configure scr with SCR_TMP_FOLDER and SCR_EDITOR"
-        Show-PowerShellCommand "$env:SCR_TMP_FOLDER = ~/path/somewhere # choose a folder where the scratch projects will be generated"
-        Show-PowerShellCommand "$env:SCR_TMP_FOLDER . # SCR_TMP_FOLDER can the the current folder if you like it"
-        Show-PowerShellCommand "$env:SCR_EDITOR = \"nvim\" # configure the editor to open the main file"
-        Show-PowerShellCommand "$env:SCR_EDITOR = \"code . && code\" # Same with VSCode: it opens the folder in VSCode and open the main file"
-        Show-PowerShellCommand "$env:SCR_EDITOR = $EDITOR # reusing the $EDITOR value"
+        Show-PowerShellCommand '$env:SCR_TMP_FOLDER = ~/path/somewhere # choose a folder where the scratch projects will be generated'
+        Show-PowerShellCommand '$env:SCR_TMP_FOLDER . # SCR_TMP_FOLDER can the the current folder if you like it'
+        Show-PowerShellCommand '$env:SCR_EDITOR = \"nvim\" # configure the editor to open the main file'
+        Show-PowerShellCommand '$env:SCR_EDITOR = \"code . && code\" # Same with VSCode: it opens the folder in VSCode and open the main file'
+        Show-PowerShellCommand '$env:SCR_EDITOR = $EDITOR # reusing the $EDITOR value'
         Write-Host
         Write-Host "Pick the given template" -ForegroundColor Green
         Show-PowerShellCommand "scr rust # Create a new cargo project"
@@ -62,11 +63,11 @@ function scr {
 
         # Highlight: basic regex-based replacements
         $highlighted = $code `
-            -replace '(\b[A-Za-z]+\-[A-Za-z]+\b)', "$ColorCmdlet`$1$Reset" `        # Cmdlets
-        -replace '(\s-\w+)', "$ColorParam`$1$Reset" `                          # Parameters
-        -replace '("[^"]*"|''[^'']*'')', "$ColorString`$1$Reset" `             # Strings
-        -replace '(\$[A-Za-z_]\w*)', "$ColorVar`$1$Reset" `                     # Variables
-        -replace '(\b\d+(\.\d+)?\b)', "$ColorNumber`$1$Reset"                   # Numbers
+			-replace '(\b[A-Za-z]+\-[A-Za-z]+\b)', "$ColorCmdlet`$1$Reset" ` # Cmdlets
+			-replace '(\s-\w+)', "$ColorParam`$1$Reset" `   # Parameters
+			-replace '("[^"]*"|''[^'']*'')', "$ColorString`$1$Reset" ` # Strings
+			-replace '(\$[A-Za-z_]\w*)', "$ColorVar`$1$Reset" ` # Variables
+			-replace '(\b\d+(\.\d+)?\b)', "$ColorNumber`$1$Reset" # Numbers
 
         # Print highlighted code
         Write-Host -NoNewline $highlighted
@@ -79,6 +80,7 @@ function scr {
             Write-Host ""
         }
     }
+    
     function Save-File {
         param (
             [string]$Content,
@@ -87,13 +89,22 @@ function scr {
         Set-Content -Path $Path -Value $Content -Encoding UTF8
     }
 
-    $lowerArgs = $Args | ForEach-Object { $_.ToLower() }
-    if ($ShowHelp.IsPresent -or $lowerArgs.Contains('--help')) {
+    # Pre-check if language looks like a flag
+    if ($Language -and $Language.StartsWith('--')) {
+        switch ($Language.ToLower()) {
+            '--help' { $ShowHelpDoubleDash = $true; $Language = $null }
+            '--version' { $VersionDoubleDash = $true; $Language = $null }
+            default { }
+        }
+    }
+
+
+    if ($ShowHelp.IsPresent -or $ShowHelpDoubleDash) {
         Show-Help
         return
     }
         
-    if ($Version.IsPresent -or $lowerArgs.Contains('--version')) {
+    if ($Version.IsPresent -or $VersionDoubleDash) {
         Show-Version
         return
     }
@@ -119,7 +130,7 @@ function scr {
     $BaseFolder = $Env:SCR_TMP_FOLDER
     if ($Name) {
         if (Test-Path $Name) {
-            Write-Host "Path '$Name' already exists. Aborting to prevent overwrite." -ForegroundColor
+            Write-Host "Path '$Name' already exists. Aborting to prevent overwrite." -ForegroundColor Red
             return
         }
         else {
@@ -138,7 +149,7 @@ function scr {
 
     switch ($Language) {
         "rust" {
-            New-Item -ItemType Directory -Name $Final | Out-Null
+            New-Item -ItemType Directory -Path $Final | Out-Null
             Set-Location $Final
             cargo init --vcs none
             $entry = "src/main.rs"
@@ -149,31 +160,31 @@ function scr {
             Save-File "# Markdown Scratch File" $entry
         }
         "c" {
-            New-Item -ItemType Directory -Name $Final | Out-Null
+            New-Item -ItemType Directory -Path $Final | Out-Null
             Set-Location $Final
             xmake create -l c -P .
             $entry = "src/main.c"
         }
         "cpp" {
-            New-Item -ItemType Directory -Name $Final | Out-Null
+            New-Item -ItemType Directory -Path $Final | Out-Null
             Set-Location $Final
             xmake create -l c++ -P .
             $entry = "src/main.cpp"
         }
         "java" {
-            New-Item -ItemType Directory -Name $Final | Out-Null
+            New-Item -ItemType Directory -Path $Final | Out-Null
             Set-Location $Final
             $entry = "App.java"
             Save-File '{{ template "scr/App.java.tmpl" . }}' $entry
         }
         "python" {
-            New-Item -ItemType Directory -Name $Final | Out-Null
+            New-Item -ItemType Directory -Path $Final | Out-Null
             Set-Location $Final
             $entry = "main.py"
             Save-File '{{ template "scr/main.py.tmpl" . }}' $entry
         }
         "gradle" {
-            New-Item -ItemType Directory -Name $Final | Out-Null
+            New-Item -ItemType Directory -Path $Final | Out-Null
             Set-Location $Final
             & gradle init `
                 --type java-application `
@@ -187,7 +198,7 @@ function scr {
             $entry = "app/src/main/java/scratch/App.java"
         }
         "scala" {
-            New-Item -ItemType Directory -Name $Final | Out-Null
+            New-Item -ItemType Directory -Path $Final | Out-Null
             Set-Location $Final
             $entry = "Main.scala"
             Save-File '{{ template "scr/Main.scala.tmpl" . }}' $entry
@@ -196,7 +207,7 @@ function scr {
     }
 
     if (-not $Env:SCR_EDITOR) {
-        Write-Host "Scratch project created, but SCR_EDITOR is not set." -ForegroundColor
+        Write-Host "Scratch project created, but SCR_EDITOR is not set." -ForegroundColor Red
         Write-Host 'Example: $Env:SCR_EDITOR = "code .; code"' -ForegroundColor Cyan
     }
     else {
