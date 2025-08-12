@@ -171,13 +171,13 @@ def r [
         } else if ('CMakeLists.txt' | path exists) {
             if (which cmr | is-empty) {
                 color_print red "Missing cmr command"
-                return 1
+                return
             }
             { cmd: 'cmake . -Bbuild and cmake --build build/ -j 8 and clear and cmr', watch_exts: ['c', 'cpp', 'h', 'hpp', 'S'], extra_watched_files: ['CMakeLists.txt'] }
         } else if ('Makefile' | path exists) {
             if (which cmr | is-empty) {
                 color_print red "Missing cmr command"
-                return 1
+                return
             }
             let has_build_folder = ('build' | path exists) or ('target' | path exists)
             let run_cmd = if $has_build_folder { 'cmr' } else { 'cmr .' }
@@ -196,7 +196,7 @@ def r [
         color_print red "Sorry, but r.nu failed to match any supported project type in this folder."
         color_print grey "You can show the help with r -h or r --help to see what's supported"
         color_print grey "Maybe that's a bug, please make sure you are using the latest version or report the bug !"
-        return 2
+        return
     }
 
     let cmd = $runner_info.cmd
