@@ -33,6 +33,7 @@
     autoupdate = true
 [core]
     excludesfile = ~/.gitignore
+    editor = code --wait
 [rebase]
     autoSquash = true
     autoStash = true
@@ -40,6 +41,7 @@
 
 # a matter of taste (uncomment if you dare)
 [core]
+    # autocrlf = input
     # fsmonitor = true
     # untrackedCache = true
 [merge]
