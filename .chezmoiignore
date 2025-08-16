@@ -7,22 +7,24 @@ AppData
 {{ if ne .chezmoi.os "linux" }}
 .chezmoiscripts/linux/**
 
-dot_bashprofile
-dot_bashrc
+.bashprofile
+.bashrc
+.bashint
 {{- end }}
 
 # Shell configurations
 {{- if not (has "bash" .shells) }}
-dot_bashprofile
-dot_bashrc
+.bashprofile
+.bashrc
+.bashint
 {{- end }}
 
 {{- if not (has "fish" .shells) }}
-dot_config/fish
+.config/fish/**
 {{- end }}
 
 {{- if not (has "nushell" .shells) }}
-dot_config/nushell
+.config/nushell
 {{- end }}
 
 {{- if not (has "powershell" .shells) }}
@@ -31,6 +33,6 @@ Documents/WindowsPowerShell
 {{- end }}
 
 {{- if not (has "startship" .software_checks) }}
-dot_config/starship/*
-dot_config/startship.toml.tmpl
+.config/starship/*
+.config/startship.toml.tmpl
 {{- end }}
