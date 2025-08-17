@@ -86,3 +86,9 @@ if ($PSVersionTable.PSEdition -eq 'Desktop') {
     # restore the original module path so PSReadLine can load
     $Env:PSModulePath = $origPSModulePath
 }
+
+$pwshPath = "$env:ProgramFiles\PowerShell\7\pwsh.exe"
+if (Test-Path $pwshPath) {
+    Write-Host "Installing PSFzf for PowerShell 7..."
+    & $pwshPath -NoProfile -Command "Install-Module -Name PSFzf -Force -Scope CurrentUser"
+}
