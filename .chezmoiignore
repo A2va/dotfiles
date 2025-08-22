@@ -32,7 +32,7 @@ Documents/PowerShell
 Documents/WindowsPowerShell
 {{- end }}
 
-{{- if not (has "startship" .software_checks) }}
+{{- if not (has "starship" .software_checks) }}
 .config/starship/*
-.config/startship.toml.tmpl
+.config/starship.toml.tmpl
 {{- end }}
