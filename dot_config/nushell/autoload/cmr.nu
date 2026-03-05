@@ -21,7 +21,7 @@ use utils *
 #   2. Then if there are arguments, they are used to filter this list
 #   2.5 If there are still multiple files, it will prompt to choose one
 #   3. Finally, if there are arguments after a '--' argument it will be forwarded to the chosen target
-# 
+#
 # Simple execution with a single binary file under build/hello
 #   - `cmr # just runs ./build/hello`
 #   - `cmr -- --name john # just forward arguments after -- and runs ./build/hello --name john`
@@ -34,7 +34,7 @@ use utils *
 #   - `CMR_DEBUG=on cmr target/ hello 2 -- --msg byebye -- # WIP: only arguments separation dump`
 def cmr [
     ...args: string
-    --version(-v) 
+    --version(-v)
 ] {
     if $version {
         print $"Nushell command ($VERSION) installed."
@@ -58,7 +58,7 @@ def cmr [
         }
     }
 
-    if ($env | get --ignore-errors CMR_DEBUG | is-not-empty) {
+    if ($env | get CMR_DEBUG | is-not-empty) {
         print "WIP debug mode"
         print $"Arguments used for filters: ($filters_args)"
         print $"Arguments passed down to selected target: ($passdown_args)"
@@ -96,7 +96,7 @@ def cmr [
     }
 
     # Keep only executable files (UNIX: +x perms or Windows: .exe)
-    let execs = ($files | where { 
+    let execs = ($files | where {
         ($in.name | str ends-with ".exe") or (($in.perms? | str contains "x") and not ($in.name | str ends-with ".cmake"))
     } | get name)
 
