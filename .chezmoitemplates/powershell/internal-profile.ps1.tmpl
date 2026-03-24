@@ -1,7 +1,7 @@
 # Internal powershell profile for handling completion
 
 # Load all 'autoload' scripts
-Get-ChildItem "$env:USERPROFILE\.config\powershell\autoload\*.ps1" | %{.$_} 
+Get-ChildItem "$env:USERPROFILE\.config\powershell\autoload\*.ps1" | %{.$_}
 {{ $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links"}}
 $env:HOME = $HOME
 
@@ -9,10 +9,6 @@ $env:HOME = $HOME
 if ($env:Path -notlike "*\.local\bin*") {
     $env:Path += ";$env:USERPROFILE\.local\bin"
 }
-
-# chezmoi completion
-{{ completion "powershell" }}
-
 {{- if has "rustup" .software_checks}}
 rustup completions powershell | Out-String | Invoke-Expression
 {{- end }}
