@@ -12,6 +12,7 @@ sudo groupadd docker
 sudo usermod -aG docker $USER
 {{- end }}
 
+
 {{- if has "dev" .software_groups }}
     {{- if not (or (findExecutable "xmake" (list "bin" "/usr/bin" ".local/bin")) (lookPath "xmake")) }}
 curl -fsSL https://xmake.io/shget.text | bash
@@ -23,6 +24,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 {{- end }}
 
 
+# Install flatpak apps
 {{- $flatpak_packages := list -}}
 {{- range .software_groups }}
   {{- $groupPackages := index $.packages.flatpak . -}}
@@ -36,6 +38,24 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 {{   if not (contains . $flatpak_list) -}}
 flatpak install -y --user flathub {{ . }}
 {{   end -}}
+{{- end -}}
+
+
+# Install binary with poof
+curl -fsSL https://raw.githubusercontent.com/pirafrank/poof/main/install.sh | sh
+{{- $poof_packages := list -}}
+{{- range .software_groups }}
+  {{- $groupPackages := index $.packages.poof . -}}
+  {{- if $groupPackages }}
+    {{- $poof_packages = concat $poof_packages $groupPackages -}}
+  {{- end }}
+{{- end }}
+
+{{ $poof_list := (output "bash" "-c" `poof list | awk 'NR>2 {print tolower($1)}'`) -}}
+{{ range $poof_packages -}}
+{{   if not (contains . $poof_list) -}}
+poof install {{ . }}
+{{  end -}}
 {{- end -}}
 
 

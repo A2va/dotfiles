@@ -6,7 +6,7 @@ packages:
     dev:
       - astral-sh.uv
       - Rustlang.Rustup
-    cli: 
+    cli:
       - rsteube.Carapace
       - Starship.Starship
       - ajeetdsouza.zoxide
@@ -21,14 +21,31 @@ packages:
       - Gyan.FFmpeg # dep of vhs
       - tsl0922.ttyd # dep of vhs
       - Typst.Typst
-    gui: 
+    gui:
       - Microsoft.VisualStudioCode
       - AnyAssociation.Anytype
       - Martchus.syncthingtray
       - KeePassXCTeam.KeePassXC
       - Microsoft.WindowsTerminal
+  poof:
+    dev:
+      - astral-sh/uv
+    cli:
+      - carapace-sh/carapace-bin
+      - starship/starship
+      - ajeetdsouza/zoxide
+      - eza-community/eza
+      - burntsushi/ripgrep
+      - sharkdp/fd
+      - sharkdp/bat
+      - junegunn/fzf
+    tool:
+      - charmbracelet/vhs
+      - typst/typst
+      # Dep of vhs will stay in externals
+      #- tsl0922/ttyd
   flatpak:
-    gui: 
+    gui:
       - com.visualstudio.code
       - io.anytype.anytype
       - io.github.martchus.syncthingtray
