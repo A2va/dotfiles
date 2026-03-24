@@ -1,3 +1,6 @@
+source ~/.config/nushell/poof.nu
+
+
 {{- $fishShell := and (eq .chezmoi.os "linux") (findExecutable "fish" (list "/usr/bin" "/usr/local/bin" ".local/bin")) -}}
 {{- if $fishShell }}
 let fish_completer = {|spans|
@@ -84,5 +87,3 @@ source ~/.cache/nushell/starship.nu
 {{- if has "zoxide" .software_checks }}
 source ~/.cache/nushell/zoxide.nu
 {{- end }}
-
-source ~/.config/nushell/poof.nu

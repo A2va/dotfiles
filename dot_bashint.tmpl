@@ -3,6 +3,8 @@
 # chezmoi completion
 {{ completion "bash" }}
 
+eval "$(poof init --shell bash)"
+
 {{- if has "rustup" .software_checks }}
 # rustup completion
 . "$HOME/.cargo/env"
@@ -42,6 +44,3 @@ fzf --bash | source
 {{- if has "rg" .software_checks }}
 rg --generate=complete-bash | source
 {{- end }}
-
-
-eval "$(poof init --shell bash)"
