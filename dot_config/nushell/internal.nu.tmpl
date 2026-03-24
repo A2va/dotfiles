@@ -22,14 +22,13 @@ let xmake_completer = { |spans|
 {{- end }}
 
 
-
 let zoxide_completer = {|spans|
     $spans | skip 1 | zoxide query -l ...$in | lines | where {|x| $x != $env.PWD}
 }
 
 # We source this early so we can capture its completer for our fallback logic.
 {{- if has "carapace" .software_checks }}
-source ~/.cache/carapace/init.nu
+source ~/.cache/nushell/carapace.nu
 {{- end }}
 
 
@@ -74,16 +73,16 @@ $env.config.completions.external = {
 }
 
 {{- if has "uv" .software_checks }}
-source ~/.cache/uv/init.nu
+source ~/.cache/nushell/uv.nu
 {{- end }}
 
 {{- if has "starship" .software_checks }}
 $env.STARSHIP_LOG = 'error'
-source ~/.cache/starship/init.nu
+source ~/.cache/nushell/starship.nu
 {{- end }}
 
 {{- if has "zoxide" .software_checks }}
-source ~/.cache/zoxide/init.nu
+source ~/.cache/nushell/zoxide.nu
 {{- end }}
 
 source ~/.config/nushell/poof.nu
