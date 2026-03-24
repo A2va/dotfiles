@@ -2,9 +2,6 @@ set -x STARSHIP_LOG  "error"
 
 poof init --shell fish | source
 
-# chezmoi completion
-{{ completion "fish" }}
-
 {{- if has "rustup" .software_checks }}
 # rustup completion
 source "$HOME/.cargo/env.fish"

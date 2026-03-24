@@ -1,6 +1,5 @@
 source ~/.config/nushell/poof.nu
 
-
 {{- $fishShell := and (eq .chezmoi.os "linux") (findExecutable "fish" (list "/usr/bin" "/usr/local/bin" ".local/bin")) -}}
 {{- if $fishShell }}
 let fish_completer = {|spans|

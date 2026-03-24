@@ -1,8 +1,5 @@
 # Internal bash profile for handling completion
 
-# chezmoi completion
-{{ completion "bash" }}
-
 eval "$(poof init --shell bash)"
 
 {{- if has "rustup" .software_checks }}
