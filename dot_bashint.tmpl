@@ -42,3 +42,6 @@ fzf --bash | source
 {{- if has "rg" .software_checks }}
 rg --generate=complete-bash | source
 {{- end }}
+
+
+eval "$(poof init --shell bash)"
