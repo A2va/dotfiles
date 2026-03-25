@@ -55,7 +55,7 @@
 	email = 49582555+A2va@users.noreply.github.com
 [credential "https://github.com"]
 	helper =
-	helper = !/home/a2va/.local/bin/gh auth git-credential
+	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
 	helper =
-	helper = !/home/a2va/.local/bin/gh auth git-credential
+	helper = !gh auth git-credential
