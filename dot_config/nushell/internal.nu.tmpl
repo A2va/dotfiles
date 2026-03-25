@@ -1,5 +1,24 @@
 source ~/.config/nushell/poof.nu
 
+# We source this early so we can capture its completer for our fallback logic.
+{{- if has "carapace" .software_checks }}
+source ~/.cache/nushell/carapace.nu
+{{- end }}
+
+{{- if has "uv" .software_checks }}
+source ~/.cache/nushell/uv.nu
+{{- end }}
+
+{{- if has "starship" .software_checks }}
+$env.STARSHIP_LOG = 'error'
+source ~/.cache/nushell/starship.nu
+{{- end }}
+
+{{- if has "zoxide" .software_checks }}
+source ~/.cache/nushell/zoxide.nu
+{{- end }}
+
+
 {{- $fishShell := and (eq .chezmoi.os "linux") (findExecutable "fish" (list "/usr/bin" "/usr/local/bin" ".local/bin")) -}}
 {{- if $fishShell }}
 let fish_completer = {|spans|
@@ -27,12 +46,6 @@ let xmake_completer = { |spans|
 let zoxide_completer = {|spans|
     $spans | skip 1 | zoxide query -l ...$in | lines | where {|x| $x != $env.PWD}
 }
-
-# We source this early so we can capture its completer for our fallback logic.
-{{- if has "carapace" .software_checks }}
-source ~/.cache/nushell/carapace.nu
-{{- end }}
-
 
 # Capture the current external completer.
 # If Carapace was sourced above, this is the official Carapace completer.
@@ -73,16 +86,3 @@ $env.config.completions.external = {
   enable: true
   completer: $external_completer
 }
-
-{{- if has "uv" .software_checks }}
-source ~/.cache/nushell/uv.nu
-{{- end }}
-
-{{- if has "starship" .software_checks }}
-$env.STARSHIP_LOG = 'error'
-source ~/.cache/nushell/starship.nu
-{{- end }}
-
-{{- if has "zoxide" .software_checks }}
-source ~/.cache/nushell/zoxide.nu
-{{- end }}
