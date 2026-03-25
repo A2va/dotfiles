@@ -3,12 +3,12 @@ packages:
     base:
       - Git.Git
       - Docker.DockerDesktop
+      - rsteube.Carapace
+      - Starship.Starship
     dev:
       - astral-sh.uv
       - Rustlang.Rustup
     cli:
-      - rsteube.Carapace
-      - Starship.Starship
       - ajeetdsouza.zoxide
       - eza-community.eza
       - BurntSushi.ripgrep.GNU
@@ -28,6 +28,9 @@ packages:
       - KeePassXCTeam.KeePassXC
       - Microsoft.WindowsTerminal
   poof:
+    base:
+      - carapace-sh/carapace-bin
+      - starship/starship
     dev:
       - astral-sh/uv
     cli:
