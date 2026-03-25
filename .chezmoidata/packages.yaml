@@ -1,3 +1,21 @@
+groups:
+  - name: base
+    description: Essential tools (git, carapace, staship)
+    optional: false
+  - name: dev
+    description: Developer tools (xmake, uv, build tools)
+    optional: true
+  - name: cli
+    description: CLI productivity tools (zoxide, bat, eza)
+    optional: true
+  - name: tool
+    description: Extra utilities (typst, vhs)
+    optional: true
+  - name: gui
+    description: GUI applications
+    optional: true
+    desktop_only: true
+
 packages:
   winget:
     base:
@@ -34,8 +52,6 @@ packages:
     dev:
       - astral-sh/uv
     cli:
-      - carapace-sh/carapace-bin
-      - starship/starship
       - ajeetdsouza/zoxide
       - eza-community/eza
       - burntsushi/ripgrep

@@ -36,24 +36,41 @@
 
 {{/* === 2. Software Group Selection === */}}
 
-{{- $softwareGroupsPromptLines := list
-  "Select which groups of software to install:"
-  "  dev   - Developer tools (xmake, uv, build tools)"
-  "  cli   - CLI productivity tools (zoxide, bat, eza)"
-  "  tool  - Extra utilities (typst, vhs)"
--}}
+{{- /* Read the file from your source directory */ -}}
+{{- $packages := include ".chezmoidata/packages.yaml" | fromYaml -}}
 
-{{- $availableGroups := list "dev" "cli" "tool" -}}
+{{- $promptLines := list "Select optional software groups ('base' is always installed):" -}}
+{{- $availableGroups := list -}}
+{{- $mandatoryGroups := list -}}
 
-{{- if $isDesktop }}
-  {{- $softwareGroupsPromptLines = append $softwareGroupsPromptLines "  gui   - GUI applications (Anytype, KeePassXC, syncthingtray, VS Code)" -}}
-  {{- $availableGroups = append $availableGroups "gui" -}}
-{{- end }}
+{{- range $group := $packages.groups -}}
+  {{- $desktopOnly := false -}}
+  {{- if hasKey $group "desktop_only" -}}
+    {{- $desktopOnly = $group.desktop_only -}}
+  {{- end -}}
 
-{{- $softwareGroupsPrompt := join "\n" $softwareGroupsPromptLines -}}
-{{- $defaultGroups := list "" -}}
-{{- $chosenSoftwareGroups := promptMultichoice $softwareGroupsPrompt $availableGroups $defaultGroups -}}
-{{- $chosenSoftwareGroups = append $chosenSoftwareGroups "base" -}}
+
+  {{- /* Check if the group is allowed based on desktop status */ -}}
+  {{- if or (not $desktopOnly) $isDesktop -}}
+
+    {{- if $group.optional -}}
+      {{- /* Add to the user prompt */ -}}
+      {{- $availableGroups = append $availableGroups $group.name -}}
+      {{- $promptLines = append $promptLines (printf "  %-4s - %s" $group.name $group.description) -}}
+    {{- else -}}
+      {{- /* Silently add to mandatory list without asking */ -}}
+      {{- $mandatoryGroups = append $mandatoryGroups $group.name -}}
+    {{- end -}}
+
+  {{- end -}}
+{{- end -}}
+
+{{- $prompt := join "\n" $promptLines -}}
+{{- $chosenOptionalGroups := promptMultichoice $prompt $availableGroups (list) -}}
+
+{{- /* Final chosen groups is the required groups + whatever the user selected */ -}}
+{{- $chosenSoftwareGroups := concat $mandatoryGroups $chosenOptionalGroups -}}
+
 {{/* === Software Checks === */}}
 
 {{- $locationCheck := list -}}
