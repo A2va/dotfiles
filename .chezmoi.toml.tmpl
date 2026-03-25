@@ -38,13 +38,12 @@
 
 {{- $softwareGroupsPromptLines := list
   "Select which groups of software to install:"
-  "  base  - Essential tools (git, docker)"
   "  dev   - Developer tools (xmake, uv, build tools)"
   "  cli   - CLI productivity tools (zoxide, bat, eza)"
   "  tool  - Extra utilities (typst, vhs)"
 -}}
 
-{{- $availableGroups := list "base" "dev" "cli" "tool" -}}
+{{- $availableGroups := list "dev" "cli" "tool" -}}
 
 {{- if $isDesktop }}
   {{- $softwareGroupsPromptLines = append $softwareGroupsPromptLines "  gui   - GUI applications (Anytype, KeePassXC, syncthingtray, VS Code)" -}}
@@ -52,8 +51,9 @@
 {{- end }}
 
 {{- $softwareGroupsPrompt := join "\n" $softwareGroupsPromptLines -}}
-{{- $defaultGroups := list "base" -}}
+{{- $defaultGroups := list "" -}}
 {{- $chosenSoftwareGroups := promptMultichoice $softwareGroupsPrompt $availableGroups $defaultGroups -}}
+{{- $chosenSoftwareGroups = append $chosenSoftwareGroups "base" -}}
 {{/* === Software Checks === */}}
 
 {{- $locationCheck := list -}}
