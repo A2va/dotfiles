@@ -17,5 +17,14 @@
     {{- end }}
   executable: true
 
+".local/bin/gallery-dl":
+    type: file
+    url: https://github.com/mikf/gallery-dl/releases/download/v{{ .versions.gallery_dl }}/gallery-dl.bin
+    executable: true
+
+".local/bin/yt-dlp":
+    type: file
+    url: https://github.com/yt-dlp/yt-dlp/releases/download/{{ .versions.yt_dlp }}/yt-dlp_linux
+    executable: true
 {{- end }}
 {{- end }}
