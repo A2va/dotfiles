@@ -1,7 +1,7 @@
 source ~/.config/nushell/poof.nu
 
 # We source this early so we can capture its completer for our fallback logic.
-{{- if has "carapace" .software_checks }}
+{{- if has "carapace-bin" .software_checks }}
 source ~/.cache/nushell/carapace.nu
 {{- end }}
 
