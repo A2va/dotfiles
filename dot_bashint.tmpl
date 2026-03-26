@@ -2,6 +2,18 @@
 
 eval "$(poof init --shell bash)"
 
+# Setup cli tools
+{{- if has "carapace" .software_checks }}
+# carapace completion
+export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense' # optional
+source <(carapace _carapace)
+{{- end }}
+
+{{- if has "starship" .software_checks }}
+export STARSHIP_LOG='error'
+eval "$(starship init bash)"
+{{- end }}
+
 {{- if has "rustup" .software_checks }}
 # rustup completion
 . "$HOME/.cargo/env"
@@ -16,18 +28,6 @@ source ~/.xmake/profile
 {{- if has "uv" .software_checks }}
 # uv completion
 #uv generate-shell-completion bash
-{{- end }}
-
-# Setup cli tools
-{{- if has "carapace" .software_checks }}
-# carapace completion
-export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense' # optional
-source <(carapace _carapace)
-{{- end }}
-
-{{- if has "starship" .software_checks }}
-export STARSHIP_LOG='error'
-eval "$(starship init bash)"
 {{- end }}
 
 {{- if has "zoxide" .software_checks }}
