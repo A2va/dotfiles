@@ -4,7 +4,6 @@ eval "$(poof init --shell bash)"
 
 # Setup cli tools
 {{- if has "carapace-bin" .software_checks }}
-# carapace completion
 export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense' # optional
 source <(carapace _carapace)
 {{- end }}
@@ -30,8 +29,7 @@ source ~/.xmake/profile
 {{- end }}
 
 {{- if has "uv" .software_checks }}
-# uv completion
-#uv generate-shell-completion bash
+eval "$(uv --generate-shell-completion bash)"
 {{- end }}
 
 {{- if has "zoxide" .software_checks }}
@@ -39,9 +37,9 @@ eval "$(zoxide init bash)"
 {{- end }}
 
 {{- if has "fzf" .software_checks }}
-fzf --bash | source
+eval "$(fzf --bash)"
 {{- end }}
 
 {{- if has "rg" .software_checks }}
-rg --generate=complete-bash | source
+eval "$(rg --generate=complete-bash)"
 {{- end }}
