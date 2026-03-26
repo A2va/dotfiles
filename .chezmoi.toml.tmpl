@@ -75,7 +75,7 @@
 
 {{- $locationCheck := list -}}
 {{- if eq .chezmoi.os "linux" }}
-  {{- $locationCheck = list "bin" "/usr/bin" ".local/bin" -}}
+  {{- $locationCheck = list "bin" "/usr/bin" ".local/bin" "/home/a2va/.local/share/poof/bin" -}}
 {{- else if eq .chezmoi.os "windows" }}
   {{ $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links"}}
   {{- $locationCheck = list $wingetLinksPath -}}

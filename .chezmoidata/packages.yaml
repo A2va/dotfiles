@@ -1,6 +1,6 @@
 groups:
   - name: base
-    description: Essential tools (git, carapace, staship)
+    description: Essential tools (git, carapace, starship)
     optional: false
   - name: dev
     description: Developer tools (xmake, uv, build tools)
@@ -49,6 +49,7 @@ packages:
     base:
       - carapace-sh/carapace-bin
       - starship/starship
+      - sharkdp/vivid
     dev:
       - astral-sh/uv
     cli:
