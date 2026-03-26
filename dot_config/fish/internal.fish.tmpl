@@ -13,6 +13,10 @@ carapace _carapace | source
 starship init fish | source
 {{- end }}
 
+{{- if has "vivid" .software_checks }}
+set -gx LS_COLORS (vivid generate ansi)
+{{- end }}
+
 {{- if has "rustup" .software_checks }}
 # rustup completion
 source "$HOME/.cargo/env.fish"

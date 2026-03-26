@@ -14,6 +14,10 @@ export STARSHIP_LOG='error'
 eval "$(starship init bash)"
 {{- end }}
 
+{{- if has "vivid" .software_checks }}
+export LS_COLORS="$(vivid generate ansi)"
+{{- end }}
+
 {{- if has "rustup" .software_checks }}
 # rustup completion
 . "$HOME/.cargo/env"

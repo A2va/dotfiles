@@ -5,10 +5,6 @@ source ~/.config/nushell/poof.nu
 source ~/.cache/nushell/carapace.nu
 {{- end }}
 
-{{- if has "uv" .software_checks }}
-source ~/.cache/nushell/uv.nu
-{{- end }}
-
 {{- if has "starship" .software_checks }}
 $env.STARSHIP_LOG = 'error'
 source ~/.cache/nushell/starship.nu
@@ -18,6 +14,9 @@ source ~/.cache/nushell/starship.nu
 source ~/.cache/nushell/zoxide.nu
 {{- end }}
 
+{{- if has "uv" .software_checks }}
+source ~/.cache/nushell/uv.nu
+{{- end }}
 
 {{- $fishShell := and (eq .chezmoi.os "linux") (findExecutable "fish" (list "/usr/bin" "/usr/local/bin" ".local/bin")) -}}
 {{- if $fishShell }}

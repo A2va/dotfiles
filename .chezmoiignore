@@ -36,3 +36,7 @@ Documents/WindowsPowerShell
 .config/starship/*
 .config/starship.toml.tmpl
 {{- end }}
+
+{{- if not (has "vivid" .software_checks) }}
+.config/vivid/*
+{{- end }}
