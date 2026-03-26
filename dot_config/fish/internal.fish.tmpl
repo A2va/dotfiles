@@ -3,7 +3,7 @@ set -x STARSHIP_LOG  "error"
 poof init --shell fish | source
 
 # Setup cli tools
-{{- if has "carapace" .software_checks }}
+{{- if has "carapace-bin" .software_checks }}
 # carapace completion
 set -Ux CARAPACE_BRIDGES 'zsh,fish,bash,inshellisense' # optional
 carapace _carapace | source

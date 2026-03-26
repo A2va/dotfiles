@@ -75,41 +75,51 @@
 
 {{- $locationCheck := list -}}
 {{- if eq .chezmoi.os "linux" }}
-  {{- $locationCheck = list "bin" "/usr/bin" ".local/bin" "/home/a2va/.local/share/poof/bin" -}}
+  {{- /* Dynamically generate paths to avoid hardcoded 'a2va' */ -}}
+  {{- $poofBinPath := joinPath .chezmoi.homeDir ".local/share/poof/bin" -}}
+  {{- $localBinPath := joinPath .chezmoi.homeDir ".local/bin" -}}
+  {{- $locationCheck = list "bin" "/usr/bin" $localBinPath $poofBinPath -}}
 {{- else if eq .chezmoi.os "windows" }}
-  {{ $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links"}}
+  {{- $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links" -}}
   {{- $locationCheck = list $wingetLinksPath -}}
 {{- end }}
 
-{{- $groupTools := dict
-      "dev"  (list "xmake" "rustup" "uv")
-      "cli"  (list "carapace" "starship" "zoxide" "fzf" "rg")
--}}
-{{- $otherTools := (list "uv")}}
-
-{{- /* Build a list of all tools to check based on chosen groups */}}
-{{- $toolsFromChosenGroups := list -}}
-{{- range $groupName := $chosenSoftwareGroups }}
-  {{- if hasKey $groupTools $groupName }}
-    {{- $toolsInGroup := get $groupTools $groupName -}}
-    {{- $toolsFromChosenGroups = concat $toolsFromChosenGroups $toolsInGroup -}}
-  {{- end -}}
-{{- end }}
-
-{{- $allTools := $otherTools -}}
-{{- range $_, $tools := $groupTools -}}
-  {{- $allTools = concat $allTools $tools -}}
-{{- end }}
-
-{{- /* A tool is added if it's in a selected group OR if it's already installed. */ -}}
 {{- $softwareChecks := list -}}
-{{- range $tool := $allTools | uniq }}
-  {{- $isInstalled := or (findExecutable $tool $locationCheck) (lookPath $tool) -}}
-  {{- $isInChosenGroup := has $tool $toolsFromChosenGroups -}}
-  {{- if or $isInChosenGroup $isInstalled }}
-    {{- $softwareChecks = append $softwareChecks $tool -}}
+
+{{- /* Safely extract the 'poof' dictionary to avoid missing key errors */ -}}
+{{- $poofPackages := dict -}}
+{{- if hasKey $packages "packages" -}}
+  {{- if hasKey $packages.packages "poof" -}}
+    {{- $poofPackages = $packages.packages.poof -}}
   {{- end -}}
-{{- end }}
+{{- end -}}
+
+{{- /* Loop through the poof groups (base, dev, etc.) */ -}}
+{{- range $groupName, $poofTools := $poofPackages -}}
+
+  {{- /* Did the user choose this specific group? */ -}}
+  {{- $isInChosenGroup := has $groupName $chosenSoftwareGroups -}}
+
+  {{- range $pkg := $poofTools -}}
+
+    {{- /* Extract the executable name by grabbing everything after the last '/' */ -}}
+    {{- /* e.g., "github.com/typst/typst" -> "typst" */ -}}
+    {{- $execName := base $pkg -}}
+
+    {{- /* Check if the tool is installed on the system */ -}}
+    {{- $isInstalled := or (lookPath $execName) (findExecutable $execName $locationCheck) -}}
+
+    {{- /* If the group was chosen, OR the tool is already installed, add it to the list */ -}}
+    {{- if or $isInChosenGroup $isInstalled -}}
+      {{- $softwareChecks = append $softwareChecks $execName -}}
+    {{- end -}}
+
+  {{- end -}}
+{{- end -}}
+
+{{- /* Ensure there are no duplicate entries */ -}}
+{{- $softwareChecks = $softwareChecks | uniq -}}
+
 
 [data]
 shells = {{ $chosenShells | toToml }}
