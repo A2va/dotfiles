@@ -1,3 +1,6 @@
+LICENSE
+README.md
+
 {{ if ne .chezmoi.os "windows" }}
 .chezmoiscripts/windows/**
 Documents
