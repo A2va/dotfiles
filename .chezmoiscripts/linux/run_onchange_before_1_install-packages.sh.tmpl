@@ -35,7 +35,10 @@ flatpak install -y --user flathub {{ . }}
 
 
 # Install binary with poof
+{{- if has "poof" .software_checks }}
 curl -fsSL https://raw.githubusercontent.com/pirafrank/poof/main/install.sh | sh
+{{- end -}}
+
 {{- $poof_packages := list -}}
 {{- range .software_groups }}
   {{- $groupPackages := index $.packages.poof . -}}
@@ -43,6 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/pirafrank/poof/main/install.sh | sh
     {{- $poof_packages = concat $poof_packages $groupPackages -}}
   {{- end }}
 {{- end }}
+
 
 {{ $poof_list := (output "bash" "-c" `poof list | awk 'NR>2 {print tolower($1)}'`) -}}
 {{ range $poof_packages -}}
