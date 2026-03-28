@@ -117,9 +117,32 @@
   {{- end -}}
 {{- end -}}
 
+{{- /* === Extra Standalone Tools === */ -}}
+
+{{- /* Tools that aren't managed by the poof list in packages.yaml */ -}}
+{{- $extraTools := list "xmake" "poof" -}}
+
+{{- range $tool := $extraTools -}}
+
+  {{- /* Check if the tool is already installed */ -}}
+  {{- $isInstalled := or (lookPath $tool) (findExecutable $tool $locationCheck) -}}
+
+  {{- /* Manual check: If the tool is xmake, it belongs to the 'dev' group */ -}}
+  {{- $isInChosenGroup := false -}}
+  {{- if eq $tool "xmake" -}}
+    {{- $isInChosenGroup = has "dev" $chosenSoftwareGroups -}}
+  {{- end -}}
+
+  {{- /* If installed, OR if its group was chosen, add it to softwareChecks */ -}}
+  {{- if or $isInstalled $isInChosenGroup -}}
+    {{- $softwareChecks = append $softwareChecks $tool -}}
+  {{- end -}}
+
+{{- end -}}
+
+
 {{- /* Ensure there are no duplicate entries */ -}}
 {{- $softwareChecks = $softwareChecks | uniq -}}
-
 
 [data]
 shells = {{ $chosenShells | toToml }}
