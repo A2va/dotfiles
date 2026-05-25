@@ -40,6 +40,7 @@ packages:
       - tsl0922.ttyd # dep of vhs
       - Typst.Typst
     gui:
+      - ZedIndustries.Zed
       - Microsoft.VisualStudioCode
       - AnyAssociation.Anytype
       - Martchus.syncthingtray
@@ -66,6 +67,7 @@ packages:
       #- tsl0922/ttyd
   flatpak:
     gui:
+      - dev.zed.Zed
       - com.visualstudio.code
       - io.anytype.anytype
       - io.github.martchus.syncthingtray
