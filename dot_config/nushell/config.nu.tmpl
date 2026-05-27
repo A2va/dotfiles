@@ -1,5 +1,3 @@
-$env.path ++= ["~/.local/bin"]
-
 source ($nu.default-config-dir  | path join 'internal.nu')
 
 # Functions
@@ -25,7 +23,7 @@ def fixor [origin?: string] {
             print $"Current origin is: (ansi red)($current_origin)(ansi reset)"
             print "No origin provided. Usage: fixor <new-origin-url>"
         }
-        _ => { 
+        _ => {
             git remote set-url origin $origin
         }
     }
