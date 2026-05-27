@@ -13,7 +13,7 @@
       -}}
     {{- $isDesktop = true -}}
   {{- end -}}
-{{- else if or (ne (env "DISPLAY") "") (ne (env "WAYLAND_DISPLAY") "") (ne (output "which" "xrandr") "") -}}
+{{- else if or (ne (env "DISPLAY") "") (ne (env "WAYLAND_DISPLAY") "") (eq (env "XDG_SESSION_TYPE") "wayland") (eq (env "XDG_SESSION_TYPE") "x11") -}}
   {{- $isDesktop = true -}}
 {{- end -}}
 
