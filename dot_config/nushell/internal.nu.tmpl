@@ -1,3 +1,11 @@
+# Detect if we're running inside an integrated terminal/editor if then use that editor
+$env.EDITOR = match ($env.TERM_PROGRAM? | default "") {
+    "vscode" => "code --wait"
+    "zed" => "zed --wait"
+    _ => "nano"
+}
+$env.GIT_EDITOR = $env.EDITOR
+
 source ~/.cache/nushell/poof.nu
 
 # We source this early so we can capture its completer for our fallback logic.

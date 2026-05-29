@@ -1,5 +1,15 @@
 # Internal bash profile for handling completion
 
+# Detect if we're running inside an integrated terminal/editor if then use that editor
+if  [[ "$TERM_PROGRAM" == "vscode" ]]; then
+    export EDITOR="code --wait"
+elif [[ "$TERM_PROGRAM" == "zed" ]]; then
+    export EDITOR="zed --wait"
+else
+    export EDITOR="nano"
+fi
+export GIT_EDITOR="$EDITOR"
+
 eval "$(poof init --shell bash)"
 
 # Setup cli tools

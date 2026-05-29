@@ -1,4 +1,13 @@
-set -x STARSHIP_LOG  "error"
+# Detect if we're running inside an integrated terminal/editor if then use that editor
+switch $TERM_PROGRAM
+    case vscode
+        set -gx EDITOR 'code --wait'
+    case zed
+        set -gx EDITOR 'zed --wait'
+    case '*'
+        set -gx EDITOR nano
+end
+set -gx GIT_EDITOR $EDITOR
 
 poof init --shell fish | source
 
@@ -10,6 +19,7 @@ carapace _carapace | source
 {{- end }}
 
 {{- if has "starship" .software_checks }}
+set -x STARSHIP_LOG  "error"
 starship init fish | source
 {{- end }}
 
