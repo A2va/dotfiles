@@ -76,9 +76,10 @@
 {{- $locationCheck := list -}}
 {{- if eq .chezmoi.os "linux" }}
   {{- /* Dynamically generate paths to avoid hardcoded 'a2va' */ -}}
+  {{- $miseShimsPath := joinPath .chezmoi.homeDir ".local/share/mise/shims" -}}
   {{- $poofBinPath := joinPath .chezmoi.homeDir ".local/share/poof/bin" -}}
   {{- $localBinPath := joinPath .chezmoi.homeDir ".local/bin" -}}
-  {{- $locationCheck = list "bin" "/usr/bin" $localBinPath $poofBinPath -}}
+  {{- $locationCheck = list "bin" "/usr/bin" $localBinPath $miseShimsPath -}}
 {{- else if eq .chezmoi.os "windows" }}
   {{- $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links" -}}
   {{- $locationCheck = list $wingetLinksPath -}}
@@ -117,10 +118,29 @@
   {{- end -}}
 {{- end -}}
 
+{{- /* Loop through the mise groups (base, dev, etc.) */ -}}
+{{- range $groupName, $miseTools := $poofPackages -}}
+
+  {{- /* Did the user choose this specific group? */ -}}
+  {{- $isInChosenGroup := has $groupName $chosenSoftwareGroups -}}
+
+  {{- range $tool := $miseTools -}}
+
+    {{- $isInstalled := or (lookPath $tool) (findExecutable $tool $locationCheck) -}}
+
+    {{- /* If the group was chosen, OR the tool is already installed, add it to the list */ -}}
+    {{- if or $isInChosenGroup $isInstalled -}}
+      {{- $softwareChecks = append $softwareChecks $tool -}}
+    {{- end -}}
+
+  {{- end -}}
+{{- end -}}
+
+
 {{- /* === Extra Standalone Tools === */ -}}
 
 {{- /* Tools that aren't managed by the poof list in packages.yaml */ -}}
-{{- $extraTools := list "xmake" "poof" -}}
+{{- $extraTools := list "xmake" "poof" "mise" -}}
 
 {{- range $tool := $extraTools -}}
 

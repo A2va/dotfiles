@@ -1,0 +1,12 @@
+# --- CHEZMOI TRIGGERS ---
+# The script will re-run whenever any of these inputs change:
+# packages.yaml hash: {{ include ".chezmoidata/packages.yaml" | sha256sum }}
+# mise template hash: {{ include "dot_config/mise/config.toml.tmpl" | sha256sum }}
+# Chosen groups: {{ .software_groups | join "," }}
+
+echo "Mise configuration updated. Running mise install..."
+
+mise install
+
+# prune old tools
+mise prune --yes

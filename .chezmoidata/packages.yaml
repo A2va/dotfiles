@@ -17,8 +17,43 @@ groups:
     desktop_only: true
 
 packages:
+  mise:
+    base:
+      carapace: "latest"
+      starship: "latest"
+      vivid: "latest"
+    dev:
+      uv: "latest"
+      bun: "latest"
+    cli:
+      zoxide: "latest"
+      eza: "latest"
+      ripgrep: "latest"
+      fd: "latest"
+      bat: "latest"
+      fzf: "latest"
+    tool:
+      vhs: "latest"
+      ttyd: "latest" # Dep of VHS
+      typst: "latest"
+      "github:yt-dlp/yt-dlp":
+        version: "latest"
+        alias: "yt-dlp"
+        bin: "yt-dlp"
+        platforms:
+          linux-x64: { asset_pattern: "yt-dlp_linux" }
+          windows-x64: { asset_pattern: "yt-dlp.exe", bin: "yt-dlp.exe" }
+      "forgejo:mikf/gallery-dl":
+        version: "latest"
+        alias: "gallery-dl"
+        bin: "gallery-dl"
+        platforms:
+          linux-x64: { asset_pattern = "gallery-dl.bin" }
+          windows-x64:
+            { asset_pattern = "gallery-dl.exe", bin = "gallery-dl.exe" }
   winget:
     base:
+      - jdx.mise
       - Git.Git
       - Docker.DockerDesktop
       - rsteube.Carapace

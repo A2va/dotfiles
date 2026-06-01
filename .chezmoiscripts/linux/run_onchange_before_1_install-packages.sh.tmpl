@@ -39,6 +39,8 @@ flatpak install -y --user flathub {{ . }}
 {{   end -}}
 {{- end -}}
 
+# install mise
+curl https://mise.run | sh
 
 # Install binary with poof
 {{- if has "poof" .software_checks }}

@@ -1,0 +1,56 @@
+{{- $packages := include ".chezmoidata/packages.yaml" | fromYaml -}}
+
+[tool_alias]
+{{- range $groupName, $tools := $packages.packages.mise }}
+  {{- if has $groupName $.software_groups }}
+    {{- range $toolName, $config := $tools }}
+      {{- if kindIs "map" $config }}{{ if hasKey $config "alias" }}
+{{ $config.alias }} = "{{ $toolName }}"
+      {{- end }}{{ end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+[tools]
+{{- range $groupName, $tools := $packages.packages.mise }}
+  {{- if has $groupName $.software_groups }}
+    {{- range $toolName, $config := $tools }}
+      {{- /* 1. Only print simple string versions here */ -}}
+      {{- if kindIs "string" $config }}
+"{{ $toolName }}" = "{{ $config }}"
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+{{- /* 2. Print complex tools as completely separate blocks */ -}}
+{{- range $groupName, $tools := $packages.packages.mise }}
+  {{- if has $groupName $.software_groups }}
+    {{- range $toolName, $config := $tools }}
+      {{- if kindIs "map" $config }}
+
+[tools."{{ $toolName }}"]
+        {{- if hasKey $config "version" }}
+version = "{{ $config.version }}"
+        {{- end }}
+        {{- if hasKey $config "bin" }}
+bin = "{{ $config.bin }}"
+        {{- end }}
+
+        {{- if hasKey $config "platforms" }}
+
+[tools."{{ $toolName }}".platforms]
+          {{- range $platformName, $platformConfig := $config.platforms }}
+            {{- /* 3. Construct proper TOML inline tables (using = instead of :) */ -}}
+            {{- $pairs := list -}}
+            {{- range $k, $v := $platformConfig -}}
+              {{- $pairs = append $pairs (printf "%s = \"%s\"" $k $v) -}}
+            {{- end }}
+{{ $platformName }} = { {{ join ", " $pairs }} }
+          {{- end }}
+        {{- end }}
+
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
