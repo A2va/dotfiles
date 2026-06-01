@@ -36,6 +36,13 @@ let fish_completer = {|spans|
         if ($in | path exists) {$'"($in | str replace "\"" "\\\"" )"'} else {$in}
     }
 }
+
+let fish_vendor_completions: list<string> = (
+    ls /usr/share/fish/vendor_completions.d/*.fish ~/.config/fish/completions/*.fish
+    | get name
+    | path basename
+    | str replace -r '\.fish$' ''
+)
 {{- end }}
 
 {{- if has "xmake" .software_checks }}
@@ -73,8 +80,7 @@ let external_completer = {|spans|
         {{ if $fishShell -}}
         # carapace completions are incorrect for nu
         nu => $fish_completer
-        # fish completes commits and branch names in a nicer way
-        git => $fish_completer
+        $fish_vendor_completions => $fish_completer
         {{ else -}}
         # on windows we don't have fish completions so fall back to carapace
         nu => $base_completer
