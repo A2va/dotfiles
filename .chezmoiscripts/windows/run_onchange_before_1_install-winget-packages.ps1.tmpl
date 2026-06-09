@@ -61,7 +61,7 @@ $config = "$env:USERPROFILE\.config\"
 # xmake can't be installed like the other packages, because if it installed like the others, xrepo
 # isn't available.
 {{- if has "dev" .software_groups }}
-winget install --id Xmake-io.Xmake --interactive
+Invoke-RestMethod -Uri 'https://xmake.io/psget.text' | Invoke-Expression
 {{ end }}
 
 # If in Windows PowerShell (Desktop edition), remove any PS7 paths
