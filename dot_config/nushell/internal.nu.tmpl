@@ -6,6 +6,15 @@ $env.EDITOR = match ($env.TERM_PROGRAM? | default "") {
 }
 $env.GIT_EDITOR = $env.EDITOR
 
+if $nu.is-interactive {
+    # INTERACTIVE: Load standard activation
+    source ~/.cache/nushell/mise.nu
+} else {
+    # NON-INTERACTIVE: Prepend shims to PATH
+    $env.PATH = ($env.PATH | prepend ("~/.local/share/mise/shims" | path expand))
+}
+
+
 source ~/.cache/nushell/poof.nu
 
 # We source this early so we can capture its completer for our fallback logic.

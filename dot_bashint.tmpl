@@ -10,6 +10,13 @@ else
 fi
 export GIT_EDITOR="$EDITOR"
 
+# Detect interactive vs non-interactive shell
+if [[ $- == *i* ]]; then
+    eval "$(mise activate bash)"
+else
+    export PATH="$HOME/.local/share/mise/shims:$PATH"
+fi
+
 eval "$(poof init --shell bash)"
 
 # Setup cli tools

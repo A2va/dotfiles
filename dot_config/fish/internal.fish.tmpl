@@ -9,6 +9,12 @@ switch $TERM_PROGRAM
 end
 set -gx GIT_EDITOR $EDITOR
 
+if status is-interactive
+    mise activate fish | source
+else
+    fish_add_path "$HOME/.local/share/mise/shims"
+end
+
 poof init --shell fish | source
 
 # Setup cli tools

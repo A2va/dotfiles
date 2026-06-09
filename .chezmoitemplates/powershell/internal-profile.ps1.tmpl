@@ -9,6 +9,21 @@ $env:HOME = $HOME
 if ($env:Path -notlike "*\.local\bin*") {
     $env:Path += ";$env:USERPROFILE\.local\bin"
 }
+
+$isInteractive = $true
+$cliArgs = [Environment]::GetCommandLineArgs()
+
+if ($cliArgs -contains '-NonInteractive' -or $cliArgs -contains '-Command' -or $cliArgs -contains '-c') {
+    $isInteractive = $false
+}
+
+# Apply the Hybrid Mise Activation
+if ($isInteractive) {
+    mise activate pwsh | Out-String | Invoke-Expression
+} else {
+    mise activate pwsh --shims | Out-String | Invoke-Expression
+}
+
 {{- if has "rustup" .software_checks}}
 rustup completions powershell | Out-String | Invoke-Expression
 {{- end }}
