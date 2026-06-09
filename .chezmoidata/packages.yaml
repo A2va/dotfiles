@@ -56,24 +56,8 @@ packages:
       - jdx.mise
       - Git.Git
       - Docker.DockerDesktop
-      - rsteube.Carapace
-      - Starship.Starship
     dev:
-      - astral-sh.uv
       - Rustlang.Rustup
-    cli:
-      - ajeetdsouza.zoxide
-      - eza-community.eza
-      - BurntSushi.ripgrep.GNU
-      - sharkdp.fd
-      - sharkdp.bat
-      - junegunn.fzf
-    tool:
-      - JernejSimoncic.Wget
-      - charmbracelet.vhs
-      - Gyan.FFmpeg # dep of vhs
-      - tsl0922.ttyd # dep of vhs
-      - Typst.Typst
     gui:
       - ZedIndustries.Zed
       - Microsoft.VisualStudioCode
@@ -81,25 +65,6 @@ packages:
       - Martchus.syncthingtray
       - KeePassXCTeam.KeePassXC
       - Microsoft.WindowsTerminal
-  poof:
-    base:
-      - carapace-sh/carapace-bin
-      - starship/starship
-      - sharkdp/vivid
-    dev:
-      - astral-sh/uv
-    cli:
-      - ajeetdsouza/zoxide
-      - eza-community/eza
-      - burntsushi/ripgrep
-      - sharkdp/fd
-      - sharkdp/bat
-      - junegunn/fzf
-    tool:
-      - charmbracelet/vhs
-      - typst/typst
-      # Dep of vhs will stay in externals
-      #- tsl0922/ttyd
   flatpak:
     gui:
       - dev.zed.Zed

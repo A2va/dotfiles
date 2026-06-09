@@ -18,7 +18,7 @@ if $nu.is-interactive {
 source ~/.cache/nushell/poof.nu
 
 # We source this early so we can capture its completer for our fallback logic.
-{{- if has "carapace-bin" .software_checks }}
+{{- if has "carapace" .software_checks }}
 source ~/.cache/nushell/carapace.nu
 {{- end }}
 

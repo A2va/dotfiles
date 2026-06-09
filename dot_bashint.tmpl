@@ -20,7 +20,7 @@ fi
 eval "$(poof init --shell bash)"
 
 # Setup cli tools
-{{- if has "carapace-bin" .software_checks }}
+{{- if has "carapace" .software_checks }}
 export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense' # optional
 source <(carapace _carapace)
 {{- end }}

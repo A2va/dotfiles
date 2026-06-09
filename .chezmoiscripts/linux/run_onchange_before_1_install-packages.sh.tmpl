@@ -42,27 +42,6 @@ flatpak install -y --user flathub {{ . }}
 # install mise
 curl https://mise.run | sh
 
-# Install binary with poof
-{{- if has "poof" .software_checks }}
-curl -fsSL https://raw.githubusercontent.com/pirafrank/poof/main/install.sh | sh
-{{- end -}}
-
-{{- $poof_packages := list -}}
-{{- range .software_groups }}
-  {{- $groupPackages := index $.packages.poof . -}}
-  {{- if $groupPackages }}
-    {{- $poof_packages = concat $poof_packages $groupPackages -}}
-  {{- end }}
-{{- end }}
-
-
-{{ $poof_list := (output "bash" "-c" `poof list | awk 'NR>2 {print tolower($1)}'`) -}}
-{{ range $poof_packages -}}
-{{   if not (contains . $poof_list) -}}
-poof install {{ . }}
-{{  end -}}
-{{- end -}}
-
 
 {{- if has "io.github.martchus.syncthingtray" $flatpak_packages }}
 # https://github.com/flathub/io.github.martchus.syncthingtray/blob/master/README.md#known-flatpak-related-issues
