@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [next]
+  workflow_dispatch:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+      - name: Install Prerequisite Packages
+        run: apt-get update && apt-get install -y curl git sudo ca-certificates
+      - name: Install chezmoi
+        run: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin
+      - run: |
+          ~/.local/bin/chezmoi init --apply A2va
+        env:
+          CI: true
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+      - name: Install chezmoi
+        run: |
+          winget install twpayne.chezmoi --accept-source-agreements --accept-package-agreements
+          echo "$env:LOCALAPPDATA\Microsoft\WinGet\Links" >> $env:GITHUB_PATH
+      - run: |
+          chezmoi init --apply A2va
+        env:
+          CI: true

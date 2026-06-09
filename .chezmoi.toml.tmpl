@@ -1,3 +1,8 @@
+{{/* === CI Detection === */}}
+{{ $ci := eq (env "CI") "true" }}
+
+
+
 {{/* === Desktop Detection === */}}
 
 {{- $isDesktop := false -}}
@@ -31,8 +36,13 @@
   {{- $defaultShells = list "powershell" -}}
 {{- end }}
 
-{{- $shellPrompt := "Which shells do you want to configure? (Uninstalled shells will be installed automatically)" -}}
-{{- $chosenShells := promptMultichoice $shellPrompt $availableShells $defaultShells -}}
+
+{{- $chosenShells := $availableShells -}}
+{{ if not $ci }}
+    {{- $shellPrompt := "Which shells do you want to configure? (Uninstalled shells will be installed automatically)" -}}
+    {{- $chosenShells = promptMultichoice $shellPrompt $availableShells $defaultShells -}}
+{{ end }}
+
 
 {{/* === 2. Software Group Selection === */}}
 
@@ -65,8 +75,11 @@
   {{- end -}}
 {{- end -}}
 
-{{- $prompt := join "\n" $promptLines -}}
-{{- $chosenOptionalGroups := promptMultichoice $prompt $availableGroups (list) -}}
+{{- $chosenOptionalGroups := list "cli" "dev" -}}
+{{ if not $ci }}
+    {{- $prompt := join "\n" $promptLines -}}
+    {{- $chosenOptionalGroups := promptMultichoice $prompt $availableGroups (list) -}}
+{{ end }}
 
 {{- /* Final chosen groups is the required groups + whatever the user selected */ -}}
 {{- $chosenSoftwareGroups := concat $mandatoryGroups $chosenOptionalGroups -}}
