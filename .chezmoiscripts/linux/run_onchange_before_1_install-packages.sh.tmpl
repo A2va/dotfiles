@@ -1,8 +1,14 @@
 #! /bin/bash
 
-{{- if eq .chezmoi.osRelease.id "debian" }}
+{{- if or
+    (eq .chezmoi.osRelease.id "debian")
+    (contains .chezmoi.osRelease.idLike "debian")
+}}
 {{ template "scripts/debian.sh.tmpl" . }}
-{{ else if eq .chezmoi.osRelease.id "fedora" }}
+{{- else if or
+    (eq .chezmoi.osRelease.id "fedora")
+    (contains .chezmoi.osRelease.idLike "fedora")
+}}
 {{ template "scripts/fedora.sh.tmpl" . }}
 {{ end }}
 
