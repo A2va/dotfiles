@@ -27,7 +27,7 @@ function fixor {
     param (
         [string]$origin
     )
-    
+
     if ($origin) {
         git config remote.origin.url $origin
     } else {
@@ -42,6 +42,7 @@ if (Get-Alias ls -ErrorAction SilentlyContinue) {
     Remove-Item alias:ls -Force
 }
 Set-Alias -Name ls -Value "eza"
+Set-Alias -Name s -Value "start"
 
 Set-Alias -Name x -Value "xmake"
 Set-Alias -Name xr -Value "xmake run"

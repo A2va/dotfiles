@@ -27,6 +27,8 @@ function fixor
 end
 
 # Aliases
+alias s xdg-open
+alias start xdg-open
 alias l ls # just `ls`
 alias ls eza # A better ls with colors
 alias ll "ls -l"
