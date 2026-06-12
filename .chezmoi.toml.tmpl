@@ -2,7 +2,6 @@
 {{ $ci := eq (env "CI") "true" }}
 
 
-
 {{/* === Desktop Detection === */}}
 
 {{- $isDesktop := false -}}
@@ -22,6 +21,12 @@
   {{- $isDesktop = true -}}
 {{- end -}}
 
+{{/* === Atomic Detection === */}}
+
+{{ $isAtomic := or
+    (stat "/run/ostree-booted")
+    (.osRelease.OSTREE_VERSION)
+}}
 
 {{/* === Shell Selection === */}}
 
@@ -182,3 +187,4 @@ shells = {{ $chosenShells | toToml }}
 software_groups = {{ $chosenSoftwareGroups | toToml }}
 software_checks = {{ $softwareChecks | toToml }}
 is_desktop = {{ $isDesktop | toToml }}
+is_atomic = {{ $isAtomic | toToml }}
