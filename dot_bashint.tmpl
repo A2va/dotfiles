@@ -17,8 +17,6 @@ else
     export PATH="$HOME/.local/share/mise/shims:$PATH"
 fi
 
-eval "$(poof init --shell bash)"
-
 # Setup cli tools
 {{- if has "carapace" .software_checks }}
 export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense' # optional

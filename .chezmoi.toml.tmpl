@@ -1,7 +1,6 @@
 {{/* === CI Detection === */}}
 {{ $ci := eq (env "CI") "true" }}
 
-
 {{/* === Desktop Detection === */}}
 
 {{- $isDesktop := false -}}
@@ -49,7 +48,7 @@
 {{ end }}
 
 
-{{/* === 2. Software Group Selection === */}}
+{{/* === Software Group Selection === */}}
 
 {{- /* Read the file from your source directory */ -}}
 {{- $packages := include ".chezmoidata/packages.yaml" | fromYaml -}}
@@ -95,7 +94,6 @@
 {{- if eq .chezmoi.os "linux" }}
   {{- /* Dynamically generate paths to avoid hardcoded 'a2va' */ -}}
   {{- $miseShimsPath := joinPath .chezmoi.homeDir ".local/share/mise/shims" -}}
-  {{- $poofBinPath := joinPath .chezmoi.homeDir ".local/share/poof/bin" -}}
   {{- $localBinPath := joinPath .chezmoi.homeDir ".local/bin" -}}
   {{- $locationCheck = list "bin" "/usr/bin" $localBinPath $miseShimsPath -}}
 {{- else if eq .chezmoi.os "windows" }}
@@ -103,45 +101,16 @@
   {{- $locationCheck = list $wingetLinksPath -}}
 {{- end }}
 
-{{- $softwareChecks := list -}}
-
-{{- /* Safely extract the 'poof' dictionary to avoid missing key errors */ -}}
-{{- $poofPackages := dict -}}
-{{- if hasKey $packages "packages" -}}
-  {{- if hasKey $packages.packages "poof" -}}
-    {{- $poofPackages = $packages.packages.poof -}}
-  {{- end -}}
-{{- end -}}
 
 {{- $misePackages := dict -}}
 {{- if hasKey $packages "packages" -}}
-  {{- if hasKey $packages.packages "mise" -}}   {{- /* Fixed "poof" to "mise" */ -}}
+  {{- if hasKey $packages.packages "mise" -}}
     {{- $misePackages = $packages.packages.mise -}}
   {{- end -}}
 {{- end -}}
 
-{{- /* Loop through the poof groups (base, dev, etc.) */ -}}
-{{- range $groupName, $poofTools := $poofPackages -}}
+{{- $softwareChecks := list -}}
 
-  {{- /* Did the user choose this specific group? */ -}}
-  {{- $isInChosenGroup := has $groupName $chosenSoftwareGroups -}}
-
-  {{- range $pkg := $poofTools -}}
-
-    {{- /* Extract the executable name by grabbing everything after the last '/' */ -}}
-    {{- /* e.g., "github.com/typst/typst" -> "typst" */ -}}
-    {{- $execName := base $pkg -}}
-
-    {{- /* Check if the tool is installed on the system */ -}}
-    {{- $isInstalled := or (lookPath $execName) (findExecutable $execName $locationCheck) -}}
-
-    {{- /* If the group was chosen, OR the tool is already installed, add it to the list */ -}}
-    {{- if or $isInChosenGroup $isInstalled -}}
-      {{- $softwareChecks = append $softwareChecks $execName -}}
-    {{- end -}}
-
-  {{- end -}}
-{{- end -}}
 
 {{- /* Loop through the mise groups (base, dev, etc.) */ -}}
 {{- range $groupName, $miseTools := $misePackages -}}
@@ -168,8 +137,8 @@
 
 {{- /* === Extra Standalone Tools === */ -}}
 
-{{- /* Tools that aren't managed by the poof list in packages.yaml */ -}}
-{{- $extraTools := list "xmake" "poof" "mise" -}}
+{{- /* Tools that aren't managed by the mise list in packages.yaml */ -}}
+{{- $extraTools := list "xmake" "mise" -}}
 
 {{- range $tool := $extraTools -}}
 
