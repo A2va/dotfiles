@@ -113,6 +113,13 @@
   {{- end -}}
 {{- end -}}
 
+{{- $misePackages := dict -}}
+{{- if hasKey $packages "packages" -}}
+  {{- if hasKey $packages.packages "mise" -}}   {{- /* Fixed "poof" to "mise" */ -}}
+    {{- $misePackages = $packages.packages.mise -}}
+  {{- end -}}
+{{- end -}}
+
 {{- /* Loop through the poof groups (base, dev, etc.) */ -}}
 {{- range $groupName, $poofTools := $poofPackages -}}
 
@@ -137,18 +144,22 @@
 {{- end -}}
 
 {{- /* Loop through the mise groups (base, dev, etc.) */ -}}
-{{- range $groupName, $miseTools := $poofPackages -}}
+{{- range $groupName, $miseTools := $misePackages -}}
 
   {{- /* Did the user choose this specific group? */ -}}
   {{- $isInChosenGroup := has $groupName $chosenSoftwareGroups -}}
 
-  {{- range $tool := $miseTools -}}
+  {{- /* Ranging over a dict requires TWO variables to grab the key! */ -}}
+  {{- range $toolKey, $toolConfig := $miseTools -}}
 
-    {{- $isInstalled := or (lookPath $tool) (findExecutable $tool $locationCheck) -}}
+    {{- /* Extract the binary name from complex strings (e.g., "github:yt-dlp/yt-dlp" -> "yt-dlp") */ -}}
+    {{- $execName := base $toolKey -}}
+
+    {{- $isInstalled := or (lookPath $execName) (findExecutable $execName $locationCheck) -}}
 
     {{- /* If the group was chosen, OR the tool is already installed, add it to the list */ -}}
     {{- if or $isInChosenGroup $isInstalled -}}
-      {{- $softwareChecks = append $softwareChecks $tool -}}
+      {{- $softwareChecks = append $softwareChecks $execName -}}
     {{- end -}}
 
   {{- end -}}
