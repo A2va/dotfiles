@@ -23,10 +23,10 @@
 
 {{/* === Atomic Detection === */}}
 
-{{ $isAtomic := or
+{{- $isAtomic := or
     (stat "/run/ostree-booted")
-    (.osRelease.OSTREE_VERSION)
-}}
+    (hasKey .chezmoi.osRelease "ostreeVersion")
+-}}
 
 {{/* === Shell Selection === */}}
 

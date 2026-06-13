@@ -1,16 +1,24 @@
 #! /bin/bash
 
+{{- $os := .chezmoi.osRelease -}}
+{{- $idLike := "" -}}
+{{- if hasKey $os "idLike" -}}
+  {{- $idLike = $os.idLike -}}
+{{- end -}}
+
 {{- if or
-    (eq .chezmoi.osRelease.id "debian")
-    (contains .chezmoi.osRelease.idLike "debian")
+    (eq $os.id "debian")
+    (contains "debian" $idLike)
 }}
 {{ template "scripts/debian.sh.tmpl" . }}
+
 {{- else if or
-    (eq .chezmoi.osRelease.id "fedora")
-    (contains .chezmoi.osRelease.idLike "fedora")
+    (eq $os.id "fedora")
+    (contains "fedora" $idLike)
 }}
 {{ template "scripts/fedora.sh.tmpl" . }}
-{{ end }}
+
+{{- end }}
 
 {{- if has "dev" .software_groups }}
     {{- if not (or (findExecutable "xmake" (list "bin" "/usr/bin" ".local/bin")) (lookPath "xmake")) }}
