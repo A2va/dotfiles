@@ -15,8 +15,6 @@ else
     fish_add_path "$HOME/.local/share/mise/shims"
 end
 
-poof init --shell fish | source
-
 # Setup cli tools
 {{- if has "carapace" .software_checks }}
 # carapace completion
