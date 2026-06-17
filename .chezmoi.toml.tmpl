@@ -82,7 +82,7 @@
 {{- $chosenOptionalGroups := list "cli" "dev" -}}
 {{ if not $ci }}
     {{- $prompt := join "\n" $promptLines -}}
-    {{- $chosenOptionalGroups := promptMultichoice $prompt $availableGroups (list) -}}
+    {{- $chosenOptionalGroups = promptMultichoice $prompt $availableGroups (list) -}}
 {{ end }}
 
 {{- /* Final chosen groups is the required groups + whatever the user selected */ -}}
