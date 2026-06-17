@@ -48,9 +48,9 @@ packages:
         alias: "gallery-dl"
         bin: "gallery-dl"
         platforms:
-          linux-x64: { asset_pattern = "gallery-dl.bin" }
+          linux-x64: { asset_pattern: "gallery-dl.bin" }
           windows-x64:
-            { asset_pattern = "gallery-dl.exe", bin = "gallery-dl.exe" }
+            { asset_pattern: "gallery-dl.exe", bin: "gallery-dl.exe" }
   winget:
     base:
       - jdx.mise
