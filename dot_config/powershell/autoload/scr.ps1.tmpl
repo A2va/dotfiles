@@ -80,7 +80,7 @@ function scr {
             Write-Host ""
         }
     }
-    
+
     function Save-File {
         param (
             [string]$Content,
@@ -103,7 +103,7 @@ function scr {
         Show-Help
         return
     }
-        
+
     if ($Version.IsPresent -or $VersionDoubleDash) {
         Show-Version
         return
@@ -175,13 +175,13 @@ function scr {
             New-Item -ItemType Directory -Path $Final | Out-Null
             Set-Location $Final
             $entry = "App.java"
-            Save-File '{{ template "scr/App.java.tmpl" . }}' $entry
+            Save-File '{{ template "scr/App.java" . }}' $entry
         }
         "python" {
             New-Item -ItemType Directory -Path $Final | Out-Null
             Set-Location $Final
             $entry = "main.py"
-            Save-File '{{ template "scr/main.py.tmpl" . }}' $entry
+            Save-File '{{ template "scr/main.py" . }}' $entry
         }
         "gradle" {
             New-Item -ItemType Directory -Path $Final | Out-Null
@@ -201,8 +201,8 @@ function scr {
             New-Item -ItemType Directory -Path $Final | Out-Null
             Set-Location $Final
             $entry = "Main.scala"
-            Save-File '{{ template "scr/Main.scala.tmpl" . }}' $entry
-            Save-File '{{ template "scr/scalafmt.conf.tmpl" . }}' ".scalafmt.conf"
+            Save-File '{{ template "scr/Main.scala" . }}' $entry
+            Save-File '{{ template "scr/scalafmt.conf" . }}' ".scalafmt.conf"
         }
     }
 

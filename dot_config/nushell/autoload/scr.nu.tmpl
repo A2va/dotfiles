@@ -97,12 +97,12 @@ def --env scr [
         "java" => {
             mkdir $final; cd $final
             $entry = "App.java"
-            {{ includeTemplate "scr/App.java.tmpl" | quote }} | save --force $entry
+            {{ includeTemplate "scr/App.java" | quote }} | save --force $entry
         }
         "python" => {
             mkdir $final; cd $final
             $entry = "main.py"
-            {{ includeTemplate "scr/main.py.tmpl" | quote }} | save --force $entry
+            {{ includeTemplate "scr/main.py" | quote }} | save --force $entry
         }
         "gradle" => {
             mkdir $final and cd $final
@@ -122,8 +122,8 @@ def --env scr [
         "scala" => {
             mkdir $final; cd $final
             $entry = "Main.scala"
-            {{ includeTemplate "scr/Main.scala.tmpl" | quote }} | save --force $entry
-            {{ includeTemplate "scr/scalafmt.conf.tmpl" | quote }} | save --force ".scalafmt.conf"
+            {{ includeTemplate "scr/Main.scala" | quote }} | save --force $entry
+            {{ includeTemplate "scr/scalafmt.conf" | quote }} | save --force ".scalafmt.conf"
         }
     }
 

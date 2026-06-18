@@ -103,10 +103,10 @@ function scr
         case java
             mkdir -p $final && cd $final
             set entry App.java
-            save_file {{ includeTemplate "scr/App.java.tmpl" | quote }} App.java
+            save_file {{ includeTemplate "scr/App.java" | quote }} App.java
         case python
             mkdir -p $final && cd $final
-            save_file {{ includeTemplate "scr/main.py.tmpl" | quote }} main.py
+            save_file {{ includeTemplate "scr/main.py" | quote }} main.py
             set entry main.py
             # Java with Gradle
         case gradle
@@ -133,8 +133,8 @@ function scr
         case scala
             mkdir -p $final && cd $final
             set entry Main.scala
-            save_file {{ includeTemplate "scr/Main.scala.tmpl" | quote }} Main.scala
-            save_file {{ includeTemplate "scr/scalafmt.conf.tmpl" | quote }} .scalafmt.conf
+            save_file {{ includeTemplate "scr/Main.scala" | quote }} Main.scala
+            save_file {{ includeTemplate "scr/scalafmt.conf" | quote }} .scalafmt.conf
     end
 
     # TODO: really a good idea to have another env variable ?
