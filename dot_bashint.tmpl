@@ -58,3 +58,114 @@ eval "$(fzf --bash)"
 {{- if has "rg" .software_checks }}
 eval "$(rg --generate=complete-bash)"
 {{- end }}
+
+ssh-keygen-new() {
+    local copy_key=1
+    local add_agent=1
+    local comment=""
+    local name=""
+
+    # Parse all arguments so options are never mistaken for NAME
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help)
+                cat <<'EOF'
+Usage:
+  ssh-keygen-new NAME [OPTIONS]
+
+Arguments:
+  NAME                Key filename (~/.ssh/NAME)
+
+Options:
+  -c, --comment TEXT  Key comment (defaults to NAME)
+      --no-copy       Do not copy public key to clipboard
+      --no-agent      Do not add key to SSH agent
+  -h, --help          Show this help
+EOF
+                return 0
+                ;;
+            --comment|-c)
+ if [[ -z "${2:-}" ]]; then
+                    printf 'Option %s requires an argument.\n' "$1" >&2
+                    return 1
+                fi
+                comment="$2"
+                shift 2
+                ;;
+            --no-copy)
+                copy_key=0
+                shift
+                ;;
+            --no-agent)
+                add_agent=0
+                shift
+                ;;
+            -*)
+                printf 'Unknown option: %s\n' "$1" >&2 return 1
+                ;;
+            *)
+                # First non-option argument is the key name
+                if [[ -n "$name" ]]; then
+                    printf 'Unexpected argument: %s\n' "$1" >&2
+                    return 1
+                fi
+                name="$1"
+                shift ;;
+        esac
+    done
+
+    if [[ -z "$name" ]]; then
+        cat <<'EOF' >&2
+Error: NAME is required.
+
+Usage:
+  ssh-keygen-new NAME [OPTIONS]
+
+Arguments:
+  NAME                Key filename (~/.ssh/NAME)
+
+Options:
+  -c, --comment TEXT  Key comment (defaults to NAME)
+      --no-copy       Do not copy public key to clipboard
+      --no-agent      Do not add key to SSH agent
+  -h, --help          Show this help
+EOF
+        return 1
+    fi
+
+    comment="${comment:-$name}"
+
+    local key_path="$HOME/.ssh/$name"
+    local pubkey="${key_path}.pub"
+
+    mkdir -p "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
+
+    ssh-keygen \
+        -t ed25519 \
+        -C "$comment" \
+        -f "$key_path" || return $?
+
+    if (( copy_key )); then
+        if command -v wl-copy >/dev/null 2>&1; then
+            wl-copy < "$pubkey"
+            echo "✓ Public key copied to clipboard."
+        elif command -v xclip >/dev/null 2>&1; then
+            xclip -selection clipboard < "$pubkey"
+            echo "✓ Public key copied to clipboard."
+        elif command -v pbcopy >/dev/null 2>&1; then
+            pbcopy < "$pubkey"
+            echo "✓ Public key copied to clipboard."
+ else
+            echo "Warning: no clipboard utility found." >&2
+        fi
+    fi
+
+    if (( add_agent )); then
+        if ssh-add "$key_path" >/dev/null 2>&1; then
+ echo "✓ Key added to SSH agent."
+        else
+            echo "Warning: failed to add key to SSH agent." >&2
+        fi
+    fi
+}
