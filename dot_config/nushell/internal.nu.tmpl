@@ -45,8 +45,8 @@ let fish_completer = {|spans|
 }
 
 let fish_vendor_completions: list<string> = (
-    ls /usr/share/fish/vendor_completions.d/*.fish ~/.config/fish/completions/*.fish
-    | get name
+    (try { ls /usr/share/fish/vendor_completions.d/*.fish | get name } catch { [] })
+    | append (try { ls ~/.config/fish/completions/*.fish | get name } catch { [] })
     | path basename
     | str replace -r '\.fish$' ''
 )
