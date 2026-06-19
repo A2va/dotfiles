@@ -103,23 +103,23 @@ def cmr [
     let execs_count = ($execs | length)
     if $execs_count == 0 {
         if $filter_enabled {
-            color red $"No target matched with filter '($filter | str join " ")'."
+            color_print red $"No target matched with filter ($filter | str join ' ')."
         } else {
-            color red $"No target found inside ($search_directory)/"
+            color_print red $"No target found inside ($search_directory)/"
         }
         return
     } else if $execs_count == 1 {
         let target = ($execs | get 0)
-        color blue $"Running ($target) ($passdown_args | str join " ")"
+        color_print blue $"Running ($target) ($passdown_args | str join ' ')"
         ^$target ...$passdown_args
     } else {
-        color magenta "Multiple targets found, choose one:"
+        color_print magenta "Multiple targets found, choose one:"
         let target = $execs | input list "Select a target to run:"
         if ($target | is-empty) {
-            color red "No selection."
+            color_print red "No selection."
             return
         }
-        color blue $"Running ($target) ($passdown_args | str join " ")"
+        color_print blue $"Running ($target) ($passdown_args | str join ' ')"
         ^$target ...$passdown_args
     }
 }
