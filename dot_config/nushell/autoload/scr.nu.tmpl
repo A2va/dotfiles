@@ -127,10 +127,21 @@ def --env scr [
         }
     }
 
-    if 'SCR_EDITOR' not-in $env  {
-        color_print red "Scratch project created, but SCR_EDITOR is not set."
-        color_print blue 'Example: $env.SCR_EDITOR = "code"'
+    if 'SCR_EDITOR' in $env {
+        nu -c $"($env.SCR_EDITOR) ($entry)"
+    } else if 'EDITOR' in $env {
+        nu -c $"($env.EDITOR) ($entry)"
     } else {
-        ^($env.SCR_EDITOR) $entry
+        color_print red "Scratch project created, but scr doesn't know how you would prefer to open it..."
+        color_print blue "scr opens the editor defined in environment variable SCR_EDITOR or EDITOR."
+
+        print "Here is an example to put in your env.nu config:"
+        color_print blue '$env.SCR_EDITOR = "code"'
+
+        print "Another example opening neovim:"
+        color_print blue '$env.SCR_EDITOR = "nvim"'
+
+        print "Maybe you just want to use the same editor as usual:"
+        color_print blue '$env.SCR_EDITOR = $env.EDITOR'
     }
 }

@@ -137,17 +137,18 @@ function scr
             save_file {{ includeTemplate "scr/scalafmt.conf" | quote }} .scalafmt.conf
     end
 
-    # TODO: really a good idea to have another env variable ?
-    if test -z "$SCR_EDITOR"
-        color red "Scratch project has been created but scr was doesn't know how you would prefer to open it ..."
-        color blue "scr opens the editor defined in environment variable SCR_EDITOR, and gives the entry file as first argument."
-        echo "Here is an example to put in your config.fish, here opening VSCode folder and entry file"
-        color blue 'set -g SCR_EDITOR "code . && code"'
-        echo "Another example opening neovim"
-        color blue 'set -g SCR_EDITOR "nvim"'
-        echo "Maybe you just want to same editor as usual"
-        color blue 'set -g SCR_EDITOR $EDITOR'
-    else
+    if test -n "$SCR_EDITOR"
         fish -c "$SCR_EDITOR $entry"
+    elif test -n "$EDITOR"
+        fish -c "$EDITOR $entry"
+    else
+        color red "Scratch project has been created but scr doesn't know how you would prefer to open it..."
+        color blue "scr opens the editor defined in environment variable SCR_EDITOR (or EDITOR if SCR_EDITOR is not set), and gives the entry file as first argument."
+        echo "Here is an example to put in your config.fish, here opening VSCode folder and entry file:"
+        color blue 'set -g SCR_EDITOR "code . && code"'
+        echo "Another example opening neovim:"
+        color blue 'set -g SCR_EDITOR "nvim"'
+        echo "Maybe you just want to use the same editor as usual:"
+        color blue 'set -g SCR_EDITOR $EDITOR'
     end
 end
