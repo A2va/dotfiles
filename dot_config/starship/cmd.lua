@@ -3,9 +3,9 @@ import("core.project.config")
 import("core.base.option")
 
 local options = {
-    {'s', "shorten", "kv", nil, "Shorten option names using abbreviation algorithm", values = {"project", "generic", "all"}},
-    {'p', "project", "k", false, "Display project-specific options"},
-    {'g', "generic", "k", false, "Show generic options (mode, plat, arch, etc.)"}
+    { 's', "shorten", "kv", nil,   "Shorten option names using abbreviation algorithm", values = { "project", "generic", "all" } },
+    { 'p', "project", "k",  false, "Display project-specific options" },
+    { 'g', "generic", "k",  false, "Show generic options (mode, plat, arch, etc.)" }
 }
 
 local known = {
@@ -66,9 +66,62 @@ function shorten_option(name)
     return table.concat(segments)
 end
 
+-- helper function containing the shared logic
+-- property can be defined in multiple places: in the config or hardcoded in the xmake.lua,
+-- either globally or on each target.
+-- previously the script would only print the configured value
+-- which was sometimes not the correct one since it was hardcoded in the xmake.lua
+-- now it takes the most common one.
+local function _find_most_common_prop(prop_name)
+    local counts = {}
+    local file_vals = {} -- Track which values came explicitly from the file
+
+    local file = io.open("xmake.lua", "r")
+    if file then
+        local content = file:read("*all")
+        file:close()
+        for val in content:gmatch("set_" .. prop_name .. "%s*%([%s]*[\"']([^\"']+)[\"']") do
+            counts[val] = (counts[val] or 0) + 1
+            file_vals[val] = true -- flag this value as hardcoded
+        end
+    end
+
+    local cfg_val = config[prop_name] and config[prop_name]()
+    if cfg_val then
+        counts[cfg_val] = (counts[cfg_val] or 0) + 1
+    end
+
+    local most_common_val = nil
+    local max_count = 0
+
+    for val, count in pairs(counts) do
+        if count > max_count then
+            max_count = count
+            most_common_val = val
+        elseif count == max_count then
+            -- TIE-BREAKER: if there's a tie, and the current value was hardcoded
+            -- in the file but the current 'most_common_val' was not, the file wins.
+            if file_vals[val] and not file_vals[most_common_val] then
+                most_common_val = val
+            end
+        end
+    end
+
+    return most_common_val or cfg_val
+end
+
+-- public api wrappers
+function find_plat()
+    return _find_most_common_prop("plat")
+end
+
+function find_arch()
+    return _find_most_common_prop("arch")
+end
+
 function main(...)
-    
     config.load()
+
     -- the project is not configured yet
     if not config.plat() then
         return
@@ -78,18 +131,21 @@ function main(...)
 
     -- print generic config
     if args.generic then
-        local short = (args.shorten == "all" or args.shorten == "generic") and shorten_option or function(name) return name end
+        local short = (args.shorten == "all" or args.shorten == "generic") and shorten_option or
+            function(name) return name end
         printf("%s: %s, ", "mode", short(config.mode()))
         -- only show plat when it differs from the host to save space
-        if os.host() ~= config.plat() then
-            printf("%s: %s, ", "plat", short(config.plat()))
+        local plat = find_plat()
+        if os.host() ~= plat then
+            printf("%s: %s, ", "plat", short(plat))
         end
-        printf("%s: %s", "arch", short(config.arch()))
+        printf("%s: %s", "arch", short(find_arch()))
     end
 
     if args.project then
-        local short = (args.shorten == "all" or args.shorten == "project") and shorten_option or function(name) return name end
-        local first_item = not args.generic 
+        local short = (args.shorten == "all" or args.shorten == "project") and shorten_option or
+            function(name) return name end
+        local first_item = not args.generic
         for _, opt in pairs(project.options()) do
             if opt:value() ~= nil then
                 local value = opt:value()
