@@ -7,7 +7,7 @@ export def ssh-keygen-new [
     --no-agent,
 ] {
     let comment = if ($comment | is-empty) { $name } else { $comment }
-    let ssh_dir = ($nu.home-path | path join ".ssh")
+    let ssh_dir = ($nu.home-dir | path join ".ssh")
     let key_path = ($ssh_dir | path join $name)
     let pubkey = $"($key_path).pub"
 
@@ -16,10 +16,7 @@ export def ssh-keygen-new [
     }
 
     # Generate the SSH Key
-    ^ssh-keygen \
-        -t ed25519 \
-        -C $comment \
-        -f $key_path
+    ^ssh-keygen -t ed25519 -C $comment -f $key_path
 
     if $env.LAST_EXIT_CODE != 0 {
         return
@@ -37,7 +34,7 @@ export def ssh-keygen-new [
 
     # Add to SSH Agent
     if not $no_agent {
-        ^ssh-add $key_path e> (metadata).stdout
+        ^ssh-add $key_path o+e>| ignore
 
         if $env.LAST_EXIT_CODE == 0 {
             print "✓ Key added to SSH agent."
