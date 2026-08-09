@@ -27,8 +27,8 @@ function fixor
 end
 
 # Aliases
-alias s xdg-open
-alias start xdg-open
+function s; start $argv; end
+function start; xdg-open "$argv[1]" >/dev/null 2>&1; end
 alias l ls # just `ls`
 alias ls eza # A better ls with colors
 alias ll "ls -l"

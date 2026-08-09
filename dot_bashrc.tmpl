@@ -24,8 +24,8 @@ fixor() {
 }
 
 # Aliases
-alias s=xdg-open
-alias start=xdg-open
+s() { start "$1"; }
+start() { xdg-open "$1" >/dev/null 2>&1  }
 alias ls=eza # A better ls
 alias ll="ls -l"
 alias la="ls -la"
