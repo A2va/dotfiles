@@ -66,8 +66,26 @@ function shorten_option(name)
     return table.concat(segments)
 end
 
+-- effective plat/arch; set_plat()/set_arch() may override them, but only when
+-- consistent across all targets (a single target's override isn't project-wide)
+function effective_plat_arch()
+    local plat, arch = config.plat(), config.arch()
+    local tplat, tarch
+    for _, target in pairs(project.targets()) do
+        local p, a = target:plat(), target:arch()
+        if not tplat then
+            tplat, tarch = p, a
+        elseif p ~= tplat or a ~= tarch then
+            tplat, tarch = nil, nil
+            break
+        end
+    end
+    if tplat then plat, arch = tplat, tarch end
+    return plat, arch
+end
+
 function main(...)
-    
+
     config.load()
     -- the project is not configured yet
     if not config.plat() then
@@ -79,17 +97,18 @@ function main(...)
     -- print generic config
     if args.generic then
         local short = (args.shorten == "all" or args.shorten == "generic") and shorten_option or function(name) return name end
+        local plat, arch = effective_plat_arch()
         printf("%s: %s, ", "mode", short(config.mode()))
         -- only show plat when it differs from the host to save space
-        if os.host() ~= config.plat() then
-            printf("%s: %s, ", "plat", short(config.plat()))
+        if os.host() ~= plat then
+            printf("%s: %s, ", "plat", short(plat))
         end
-        printf("%s: %s", "arch", short(config.arch()))
+        printf("%s: %s", "arch", short(arch))
     end
 
     if args.project then
         local short = (args.shorten == "all" or args.shorten == "project") and shorten_option or function(name) return name end
-        local first_item = not args.generic 
+        local first_item = not args.generic
         for _, opt in pairs(project.options()) do
             if opt:value() ~= nil then
                 local value = opt:value()
