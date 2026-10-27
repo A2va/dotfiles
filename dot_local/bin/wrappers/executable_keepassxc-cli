@@ -2,5 +2,7 @@
 
 APP_NAME="keepassxc-cli"
 FLATPAK_ID="org.keepassxc.KeePassXC"
+FLATPAK_COMMAND="keepassxc-cli"
+WRAPPER_KEEP_STDERR=1
 
 source "$HOME/.local/share/flatpak-wrapper.sh"
