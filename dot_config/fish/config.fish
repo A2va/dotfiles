@@ -1,3 +1,8 @@
+# Keep user binaries and chezmoi-managed wrappers on PATH regardless of the
+# desktop environment or login shell that started the session.
+# Wrappers are prepended so they shadow the real binaries (code, zed, git, ...).
+fish_add_path --global --path --prepend ~/.local/bin/wrappers ~/.local/bin
+
 if test -f ~/.config/fish/internal.fish
     source ~/.config/fish/internal.fish &>/dev/null
 end

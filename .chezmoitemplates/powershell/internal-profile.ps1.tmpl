@@ -5,9 +5,14 @@ Get-ChildItem "$env:USERPROFILE\.config\powershell\autoload\*.ps1" | %{.$_}
 {{ $wingetLinksPath := joinPath .chezmoi.homeDir "AppData" "Local" "Microsoft" "WinGet" "Links"}}
 $env:HOME = $HOME
 
-# chezmoi managed externals
-if ($env:Path -notlike "*\.local\bin*") {
-    $env:Path += ";$env:USERPROFILE\.local\bin"
+# chezmoi managed externals: prefer wrappers, then user binaries, regardless of
+# whichever session or desktop launched PowerShell.
+$wrappersPath = Join-Path $env:USERPROFILE ".local\bin\wrappers"
+$localBinPath = Join-Path $env:USERPROFILE ".local\bin"
+$pathParts = @($env:Path -split ';' | Where-Object { $_ })
+$prepend = @(@($wrappersPath, $localBinPath) | Where-Object { $pathParts -notcontains $_ })
+if ($prepend) {
+    $env:Path = (($prepend + $pathParts) -join ';')
 }
 
 $isInteractive = $true
