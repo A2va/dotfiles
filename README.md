@@ -39,6 +39,26 @@ During installation, you'll be prompted to:
 - Select your default shell (e.g. Fish, Nushell, Bash)
 - Choose optional software groups to install (e.g. core tools, developer tools)
 
+# Git clone wrapper
+
+`git clone` is intercepted by a small wrapper (a `git` executable on Linux, a
+PowerShell `git` function on Windows). Every other git command is passed
+through untouched.
+
+- Paste the HTTPS URL copied from the browser. If an SSH identity is configured
+  for the host (`ssh -G`, so `~/.ssh/config` is honoured), the clone uses SSH;
+  otherwise it stays on HTTPS.
+- If the repository is a fork, an `upstream` remote pointing at the original
+  repository is added (always over HTTPS) and fetched. Supported forges:
+  GitHub, GitLab, Codeberg/Forgejo/Gitea and Tangled. Unknown hosts are probed
+  for the GitLab and Forgejo APIs.
+
+| Variable                  | Effect                                      |
+| ------------------------- | ------------------------------------------- |
+| `SMART_GIT_NO_UPSTREAM=1` | Skip the fork lookup                        |
+| `SMART_GIT_DEBUG=1`       | Print what the wrapper is doing             |
+| `SMART_GIT_DRY_RUN=1`     | Print the resulting command without running |
+
 # Software
 
 Depending on your selected package groups, the following tools can be automatically installed and configured:

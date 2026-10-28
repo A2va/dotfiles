@@ -1,0 +1,415 @@
+#!/usr/bin/env bash
+#
+# Smart `git` wrapper.
+#
+#   git clone <https-url>
+#
+# 1. Rewrites the URL to SSH when an identity file for the host exists. The
+#    lookup goes through `ssh -G`, so ~/.ssh/config (including Include and
+#    Match blocks) is honoured. Without a key the HTTPS URL is kept.
+# 2. After a successful clone, if the repository is a fork, adds an `upstream`
+#    remote pointing at the original repository (always over HTTPS) and fetches
+#    it.
+#
+# Every other invocation is forwarded verbatim to the real git, so the wrapper
+# is transparent for day-to-day use.
+#
+# Environment:
+#   SMART_GIT_NO_UPSTREAM=1  disable the fork/upstream lookup
+#   SMART_GIT_DEBUG=1        explain what the wrapper is doing
+#   SMART_GIT_DRY_RUN=1      print the command instead of running it
+
+set -uo pipefail
+
+PROG=smart-git
+
+debug() {
+    if [ -n "${SMART_GIT_DEBUG:-}" ]; then
+        printf '%s: %s\n' "$PROG" "$*" >&2
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Locate the real git, skipping the directory this wrapper lives in.
+# ---------------------------------------------------------------------------
+find_real_git() {
+    local self_dir IFS=: dir real
+    self_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)
+    for dir in $PATH; do
+        [ -n "$dir" ] || dir=.
+        real=$(cd -- "$dir" 2>/dev/null && pwd -P) || continue
+        [ "$real" = "$self_dir" ] && continue
+        if [ -f "$dir/git" ] && [ -x "$dir/git" ]; then
+            printf '%s\n' "$dir/git"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# ---------------------------------------------------------------------------
+# SSH availability. `ssh -G` always lists the default identity files, whether
+# or not they exist, so filter on the filesystem.
+# ---------------------------------------------------------------------------
+ssh_identity_exists() {
+    local host_name=$1 line file
+    command -v ssh >/dev/null 2>&1 || return 1
+
+    while IFS= read -r line; do
+        file=${line#identityfile }
+        file=${file%\"}
+        file=${file#\"}
+        [ "$file" = "none" ] && continue
+        case $file in
+            "~/"*) file=$HOME/${file#\~/} ;;
+            "~"*) file=$HOME${file#\~} ;;
+        esac
+        if [ -f "$file" ] && [ -r "$file" ]; then
+            debug "identity file for $host_name: $file"
+            return 0
+        fi
+    done < <(ssh -G "$host_name" 2>/dev/null |
+        awk '$1 == "identityfile" { sub(/^identityfile[ \t]+/, ""); print }')
+
+    return 1
+}
+
+# ---------------------------------------------------------------------------
+# `git clone` options that consume the following argument.
+# ---------------------------------------------------------------------------
+clone_opt_takes_value() {
+    case $1 in
+        -b | --branch | -o | --origin | -u | --upload-pack | --depth | \
+            --shallow-since | --shallow-exclude | -c | --config | \
+            --reference | --reference-if-able | --separate-git-dir | \
+            --filter | --server-option | --jobs | -j | --template | \
+            --bundle-uri | --revision | --ref-format)
+            return 0
+            ;;
+    esac
+    return 1
+}
+
+# ---------------------------------------------------------------------------
+# Forge adapters. Each prints the HTTPS URL of the original repository.
+# ---------------------------------------------------------------------------
+http_get() {
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL --connect-timeout 3 --max-time 10 -H 'Accept: application/json' "$1"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO- --timeout=10 "$1"
+    else
+        return 127
+    fi
+}
+
+trim_left() {
+    local s=$1
+    printf '%s' "${s#"${s%%[![:space:]]*}"}"
+}
+
+# --- GitHub ----------------------------------------------------------------
+upstream_github() {
+    local path_name=$1 parent after json
+    if command -v gh >/dev/null 2>&1; then
+        parent=$(gh api "repos/$path_name" --jq '.parent.full_name // empty' 2>/dev/null) || return 1
+    else
+        json=$(http_get "https://api.github.com/repos/$path_name") || return 1
+        [[ $json == *'"parent":'* ]] || return 1
+        after=$(trim_left "${json#*\"parent\":}")
+        [[ $after == null* ]] && return 1
+        # `owner.full_name` (a display name) comes before the repository's
+        # `full_name`, which is the only one containing a slash.
+        parent=$(printf '%s' "$after" | grep -o '"full_name":"[^"]*"' | grep '/' | head -1 | cut -d'"' -f4)
+    fi
+    [ -n "$parent" ] || return 1
+    printf 'https://github.com/%s\n' "$parent"
+}
+
+# --- GitLab ----------------------------------------------------------------
+upstream_gitlab() {
+    local host_name=$1 path_name=$2 encoded json after parent
+    encoded=$(printf '%s' "$path_name" | sed 's|/|%2F|g')
+    json=$(http_get "https://$host_name/api/v4/projects/$encoded") || return 1
+    [[ $json == *'"forked_from_project":'* ]] || return 1
+    after=$(trim_left "${json#*\"forked_from_project\":}")
+    [[ $after == null* ]] && return 1
+    parent=$(printf '%s' "$after" | grep -o '"path_with_namespace":"[^"]*"' | head -1 | cut -d'"' -f4)
+    [ -n "$parent" ] || return 1
+    printf 'https://%s/%s\n' "$host_name" "$parent"
+}
+
+# --- Forgejo / Gitea -------------------------------------------------------
+upstream_forgejo() {
+    local host_name=$1 path_name=$2 json after parent
+    json=$(http_get "https://$host_name/api/v1/repos/$path_name") || return 1
+    [[ $json == *'"parent":'* ]] || return 1
+    after=$(trim_left "${json#*\"parent\":}")
+    [[ $after == null* ]] && return 1
+    # `owner.full_name` (a display name) comes before the repository's
+    # `full_name`, which is the only one containing a slash.
+    parent=$(printf '%s' "$after" | grep -o '"full_name":"[^"]*"' | grep '/' | head -1 | cut -d'"' -f4)
+    [ -n "$parent" ] || return 1
+    printf 'https://%s/%s\n' "$host_name" "$parent"
+}
+
+# --- Tangled ---------------------------------------------------------------
+# A repository is an `sh.tangled.repo` record in the owner's PDS. A fork
+# carries a `source` field with the repo DID of the original; that DID can be
+# cloned directly from tangled.org.
+tangled_did_doc() {
+    local did=$1 domain
+    case $did in
+        did:plc:*) http_get "https://plc.directory/$did" ;;
+        did:web:*)
+            domain=${did#did:web:}
+            domain=${domain//:/\/}
+            http_get "https://$domain/.well-known/did.json"
+            ;;
+        *) return 1 ;;
+    esac
+}
+
+upstream_tangled() {
+    local path_name=$1 owner rkey did pds json source after sowner srkey
+    if [[ $path_name == */* ]]; then
+        owner=${path_name%%/*}
+        rkey=${path_name#*/}
+    else
+        # A bare repo DID is cloneable but cannot be looked up without the knot.
+        return 1
+    fi
+    owner=${owner#@}
+
+    if [[ $owner == did:* ]]; then
+        did=$owner
+    else
+        json=$(http_get "https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=$owner") || return 1
+        did=$(printf '%s' "$json" | grep -o '"did":"[^"]*"' | head -1 | cut -d'"' -f4)
+        [ -n "$did" ] || return 1
+    fi
+
+    json=$(tangled_did_doc "$did") || return 1
+    pds=$(printf '%s' "$json" |
+        grep -o '"id":"#atproto_pds"[^}]*"serviceEndpoint":"[^"]*"' |
+        grep -o '"serviceEndpoint":"[^"]*"' | head -1 | cut -d'"' -f4)
+    if [ -z "$pds" ]; then
+        pds=$(printf '%s' "$json" | grep -o '"serviceEndpoint":"[^"]*"' | head -1 | cut -d'"' -f4)
+    fi
+    [ -n "$pds" ] || return 1
+
+    json=$(http_get "$pds/xrpc/com.atproto.repo.getRecord?repo=$did&collection=sh.tangled.repo&rkey=$rkey") || return 1
+    source=$(printf '%s' "$json" | grep -o '"source":"[^"]*"' | head -1 | cut -d'"' -f4)
+    [ -n "$source" ] || return 1
+
+    case $source in
+        at://*)
+            after=${source#at://}
+            sowner=${after%%/*}
+            srkey=${after##*/}
+            printf 'https://tangled.org/%s/%s\n' "$sowner" "$srkey"
+            ;;
+        http://* | https://*)
+            printf '%s\n' "$source"
+            ;;
+        *)
+            printf 'https://tangled.org/%s\n' "$source"
+            ;;
+    esac
+}
+
+find_upstream() {
+    local host_name=$1 path_name=$2
+    case $host_name in
+        github.com)
+            upstream_github "$path_name"
+            ;;
+        gitlab.com | *gitlab*)
+            upstream_gitlab "$host_name" "$path_name"
+            ;;
+        codeberg.org | gitea.com | forgejo.org)
+            upstream_forgejo "$host_name" "$path_name"
+            ;;
+        tangled.org | tangled.sh)
+            upstream_tangled "$path_name"
+            ;;
+        *)
+            # Unknown host: probe the two most common self-hosted APIs once.
+            upstream_forgejo "$host_name" "$path_name" ||
+                upstream_gitlab "$host_name" "$path_name"
+            ;;
+    esac
+}
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+main() {
+    local REAL_GIT
+    REAL_GIT=$(find_real_git) || {
+        printf '%s: git not found in PATH\n' "$PROG" >&2
+        return 127
+    }
+
+    # Find the git subcommand (skipping global options that take a value).
+    local sub="" sub_index=0 skip_next=0 arg i
+    for ((i = 1; i <= $#; i++)); do
+        arg=${!i}
+        if ((skip_next)); then
+            skip_next=0
+            continue
+        fi
+        case $arg in
+            -C | -c | --git-dir | --work-tree | --namespace | --exec-path | --config-env)
+                skip_next=1
+                ;;
+            --git-dir=* | --work-tree=* | --namespace=* | --exec-path=* | --config-env=*)
+                ;;
+            -*) ;;
+            *)
+                sub=$arg
+                sub_index=$i
+                break
+                ;;
+        esac
+    done
+
+    if [ "$sub" != "clone" ]; then
+        exec "$REAL_GIT" "$@"
+    fi
+
+    # Locate the HTTPS URL among the clone arguments.
+    local url="" url_index=0
+    for ((i = sub_index + 1; i <= $#; i++)); do
+        arg=${!i}
+        case $arg in
+            https://* | http://*)
+                url=$arg
+                url_index=$i
+                break
+                ;;
+        esac
+    done
+
+    if [ -z "$url" ]; then
+        exec "$REAL_GIT" "$@"
+    fi
+
+    # host/path of the source URL
+    local rest host path
+    rest=${url#*://}
+    rest=${rest%%[?#]*}
+    host=${rest%%/*}
+    path=${rest#*/}
+    [ "$path" = "$rest" ] && path=""
+    host=${host##*@}  # strip userinfo
+    host=${host%%:*}  # strip port
+    host=${host,,}    # normalise
+    while [ "${path%/}" != "$path" ]; do path=${path%/}; done
+    path=${path%.git}
+
+    local args=("$@")
+    if [ -n "$path" ] && [ -n "$host" ] && ssh_identity_exists "$host"; then
+        local ssh_url="git@$host:$path"
+        debug "rewriting $url -> $ssh_url"
+        printf '%s: using SSH for %s\n' "$PROG" "$host" >&2
+        args[url_index - 1]=$ssh_url
+    fi
+
+    if [ -n "${SMART_GIT_DRY_RUN:-}" ]; then
+        printf '%q ' "$REAL_GIT" "${args[@]}"
+        printf '\n'
+        return 0
+    fi
+
+    # Run the clone.
+    "$REAL_GIT" "${args[@]}"
+    local rc=$?
+    [ "$rc" -ne 0 ] && return "$rc"
+
+    [ -n "${SMART_GIT_NO_UPSTREAM:-}" ] && return 0
+    [ -n "$path" ] && [ -n "$host" ] || return 0
+
+    # Collect the positional arguments of `git clone` (URL and directory).
+    local -a clone_pos=()
+    local clone_bare=0 end_opts=0
+    skip_next=0
+    for arg in "${@:sub_index+1}"; do
+        if ((skip_next)); then
+            skip_next=0
+            continue
+        fi
+        if ((end_opts)); then
+            clone_pos+=("$arg")
+            continue
+        fi
+        case $arg in
+            --)
+                end_opts=1
+                ;;
+            --bare | --mirror)
+                clone_bare=1
+                ;;
+            -*)
+                if clone_opt_takes_value "$arg"; then
+                    skip_next=1
+                fi
+                ;;
+            *)
+                clone_pos+=("$arg")
+                ;;
+        esac
+    done
+
+    # Mirror/bare clones have no working tree to configure.
+    [ "$clone_bare" -eq 1 ] && return 0
+
+    # `git -C <dir> clone ...` changes the base directory.
+    local base_dir=$PWD workdir=""
+    for ((i = 1; i < sub_index; i++)); do
+        arg=${!i}
+        if [ "$arg" = "-C" ] && ((i + 1 < sub_index)); then
+            local next=$((i + 1))
+            workdir=${!next}
+        fi
+    done
+    if [ -n "$workdir" ]; then
+        base_dir=$(cd -- "$workdir" 2>/dev/null && pwd -P) || base_dir=$PWD
+    fi
+
+    local dest=${clone_pos[1]:-}
+    if [ -z "$dest" ]; then
+        dest=$(basename -- "$path")
+        dest=${dest%.git}
+    fi
+    [ -n "$dest" ] || return 0
+
+    local dest_abs
+    case $dest in
+        /*) dest_abs=$dest ;;
+        *) dest_abs=$base_dir/$dest ;;
+    esac
+
+    "$REAL_GIT" -C "$dest_abs" rev-parse --git-dir >/dev/null 2>&1 || return 0
+
+    local upstream
+    upstream=$(find_upstream "$host" "$path") || upstream=""
+    [ -n "$upstream" ] || return 0
+
+    if "$REAL_GIT" -C "$dest_abs" remote get-url upstream >/dev/null 2>&1; then
+        debug "upstream remote already exists"
+        return 0
+    fi
+
+    if "$REAL_GIT" -C "$dest_abs" remote add upstream "$upstream"; then
+        printf '%s: added upstream %s\n' "$PROG" "$upstream" >&2
+        "$REAL_GIT" -C "$dest_abs" fetch --quiet upstream >/dev/null 2>&1 ||
+            printf '%s: warning: could not fetch upstream\n' "$PROG" >&2
+    fi
+
+    return 0
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

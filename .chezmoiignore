@@ -15,6 +15,13 @@ AppData
 .bashint
 {{- end }}
 
+# The git clone wrapper has a bash and a PowerShell implementation.
+{{ if eq .chezmoi.os "windows" }}
+.local/bin/wrappers/git
+{{- else }}
+.local/bin/wrappers/git-clone.ps1
+{{- end }}
+
 # Shell configurations
 {{- if not (has "bash" .shells) }}
 .bashprofile
